@@ -31,27 +31,33 @@ func init() {
 	flag.Var(&cbrCIDR, "cbr_cidr", "A CIDR notation IP range for the cbr0 bridge.")
 }
 func Start() {
+
 	cmd := exec.Command("sudo ip link set dev cbr0 down")
+	glog.Infof("Running '%v'", cmd)
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
 	cmd = exec.Command("sudo brctl delbr cbr0")
+	glog.Infof("Running '%v'", cmd)
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
 	cmd = exec.Command("sudo brctl addbr cbr0")
+	glog.Infof("Running '%v'", cmd)
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
 	cmd = exec.Command(fmt.Sprintf("sudo ip addr add %s dev cbr0"), cbrCIDR.String())
+	glog.Infof("Running '%v'", cmd)
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
 	cmd = exec.Command("sudo ip link set dev cbr0 down")
+	glog.Infof("Running '%v'", cmd)
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
