@@ -20,6 +20,7 @@ import (
 	"flag"
 	"net"
 	"os/exec"
+	"strings"
 
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/util"
 	"github.com/golang/glog"
@@ -41,25 +42,25 @@ func Start() {
 	}
 
 	cmd = exec.Command("brctl", "delbr", "cbr0")
-	glog.Infof("Running '%v'", cmd)
+	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
 	cmd = exec.Command("brctl", "addbr", "cbr0")
-	glog.Infof("Running '%v'", cmd)
+	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
 	cmd = exec.Command("ip", "addr", "add", cbrCIDR.String(), "dev", "cbr0")
-	glog.Infof("Running '%v'", cmd)
+	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
-	cmd = exec.Command("ip", "link", "set", "dev", "cbr0", "down")
-	glog.Infof("Running '%v'", cmd)
+	cmd = exec.Command("ip", "link", "set", "dev", "cbr0", "up")
+	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
