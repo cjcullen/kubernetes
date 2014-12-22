@@ -14,15 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+package node
+
 import (
+	"flag"
 	"fmt"
 	"os/exec"
-	
+
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/util"
 	"github.com/golang/glog"
 )
-
-package node
 
 var cbrCIDR util.IPNet
 
@@ -30,26 +31,26 @@ func init() {
 	flag.Var(&cbrCIDR, "cbr_cidr", "A CIDR notation IP range for the cbr0 bridge.")
 }
 func Start() {
-	cmd = exec.Command("sudo ip link set dev cbr0 down")
+	cmd := exec.Command("sudo ip link set dev cbr0 down")
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
-	
+
 	cmd = exec.Command("sudo brctl delbr cbr0")
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
-	
+
 	cmd = exec.Command("sudo brctl addbr cbr0")
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
-	
-	cmd = exec.Command(fmt.Sprintf("sudo ip addr add %s dev cbr0"), cbrCIDR)
+
+	cmd = exec.Command(fmt.Sprintf("sudo ip addr add %s dev cbr0"), cbrCIDR.String())
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
-	
+
 	cmd = exec.Command("sudo ip link set dev cbr0 down")
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
