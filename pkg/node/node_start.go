@@ -34,31 +34,32 @@ func init() {
 func Start() {
 	ip := cbrCIDR.IP.To4()
 	cbrCIDR := net.IPNet{net.IPv4(10, 132, ip[2], ip[3]), cbrCIDR.Mask}
-	cmd := exec.Command("sudo ip link set dev cbr0 down")
+	glog.Infof("New cbr-cidr: '%s'", cbrCIDR.String())
+	cmd := exec.Command("ip link set dev cbr0 down")
 	glog.Infof("Running '%v'", cmd)
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
-	cmd = exec.Command("sudo brctl delbr cbr0")
+	cmd = exec.Command("brctl delbr cbr0")
 	glog.Infof("Running '%v'", cmd)
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
-	cmd = exec.Command("sudo brctl addbr cbr0")
+	cmd = exec.Command("brctl addbr cbr0")
 	glog.Infof("Running '%v'", cmd)
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
-	cmd = exec.Command(fmt.Sprintf("sudo ip addr add %s dev cbr0"), cbrCIDR.String())
+	cmd = exec.Command(fmt.Sprintf("ip addr add %s dev cbr0"), cbrCIDR.String())
 	glog.Infof("Running '%v'", cmd)
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
-	cmd = exec.Command("sudo ip link set dev cbr0 down")
+	cmd = exec.Command("ip link set dev cbr0 down")
 	glog.Infof("Running '%v'", cmd)
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
