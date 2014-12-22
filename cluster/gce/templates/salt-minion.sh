@@ -34,6 +34,7 @@ cat <<EOF >/etc/salt/minion.d/grains.conf
 grains:
   roles:
     - kubernetes-pool
+  cbr-cidr: '$(echo "$MINION_IP_RANGE" | sed -e "s/'/''/g")'
   cloud: gce
 EOF
 
