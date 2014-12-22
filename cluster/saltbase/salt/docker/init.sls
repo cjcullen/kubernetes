@@ -35,11 +35,6 @@ net.ipv4.ip_forward:
   sysctl.present:
     - value: 1
 
-cbr0:
-  container_bridge.ensure:
-    - cidr: {{ grains['cbr-cidr'] }}
-    - mtu: 1460
-
 purge-old-docker:
   pkg.removed:
     - pkgs:
@@ -110,7 +105,6 @@ docker:
       - pkg: lxc-docker-{{ docker_ver }}
     - watch:
       - file: {{ environment_file }}
-      - container_bridge: cbr0
       - pkg: lxc-docker-{{ docker_ver }}
 
 {% endif %}
