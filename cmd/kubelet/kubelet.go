@@ -89,11 +89,11 @@ func main() {
 	defer util.FlushLogs()
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	node.Start()
+
 	verflag.PrintAndExitIfRequested()
 
 	setupRunOnce()
-
-	node.Start()
 
 	kcfg := standalone.KubeletConfig{
 		Address:                 address,
