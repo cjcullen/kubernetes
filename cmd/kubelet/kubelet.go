@@ -89,7 +89,9 @@ func main() {
 	defer util.FlushLogs()
 	rand.Seed(time.Now().UTC().UnixNano())
 
+	glog.Infof("Calling node.Start()")
 	node.Start()
+	glog.Infof("node.Start() completed")
 
 	verflag.PrintAndExitIfRequested()
 
