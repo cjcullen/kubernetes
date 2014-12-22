@@ -19,6 +19,7 @@ package node
 import (
 	"flag"
 	"fmt"
+	"net"
 	"os/exec"
 
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/util"
@@ -31,7 +32,8 @@ func init() {
 	flag.Var(&cbrCIDR, "cbr_cidr", "A CIDR notation IP range for the cbr0 bridge.")
 }
 func Start() {
-
+	ip := cbrCIDR.IP.To4()
+	cbrCIDR := net.IPNet{net.IPv4(10, 132, ip[2], ip[3]), cbrCIDR.Mask}
 	cmd := exec.Command("sudo ip link set dev cbr0 down")
 	glog.Infof("Running '%v'", cmd)
 	if err := cmd.Run(); err != nil {
