@@ -18,7 +18,6 @@ package node
 
 import (
 	"flag"
-	"net"
 	"os/exec"
 	"strings"
 
@@ -32,22 +31,22 @@ func init() {
 	flag.Var(&cbrCIDR, "cbr_cidr", "A CIDR notation IP range for the cbr0 bridge.")
 }
 func Start() {
-	ip := cbrCIDR.IP.To4()
-	cbrCIDR := net.IPNet{net.IPv4(10, 132, ip[2], ip[3]), cbrCIDR.Mask}
-	glog.Infof("New cbr-cidr: '%s'", cbrCIDR.String())
-	cmd := exec.Command("ip", "link", "set", "dev", "cbr0", "down")
-	glog.Infof("Running '%v'", cmd)
-	if err := cmd.Run(); err != nil {
-		glog.Errorf("err: %v", err)
-	}
+	//	ip := cbrCIDR.IP.To4()
+	//	cbrCIDR := net.IPNet{net.IPv4(10, 132, ip[2], ip[3]), cbrCIDR.Mask}
+	//	glog.Infof("New cbr-cidr: '%s'", cbrCIDR.String())
+	//	cmd := exec.Command("ip", "link", "set", "dev", "cbr0", "down")
+	//	glog.Infof("Running '%v'", cmd)
+	//	if err := cmd.Run(); err != nil {
+	//		glog.Errorf("err: %v", err)
+	//	}
+	//
+	//	cmd = exec.Command("brctl", "delbr", "cbr0")
+	//	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
+	//	if err := cmd.Run(); err != nil {
+	//		glog.Errorf("err: %v", err)
+	//	}
 
-	cmd = exec.Command("brctl", "delbr", "cbr0")
-	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
-	if err := cmd.Run(); err != nil {
-		glog.Errorf("err: %v", err)
-	}
-
-	cmd = exec.Command("brctl", "addbr", "cbr0")
+	cmd := exec.Command("brctl", "addbr", "cbr0")
 	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
