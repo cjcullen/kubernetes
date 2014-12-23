@@ -18,6 +18,7 @@ package node
 
 import (
 	"flag"
+	"net"
 	"os/exec"
 	"strings"
 
@@ -31,9 +32,9 @@ func init() {
 	flag.Var(&cbrCIDR, "cbr_cidr", "A CIDR notation IP range for the cbr0 bridge.")
 }
 func Start() {
-	//	ip := cbrCIDR.IP.To4()
-	//	cbrCIDR := net.IPNet{net.IPv4(10, 132, ip[2], ip[3]), cbrCIDR.Mask}
-	//	glog.Infof("New cbr-cidr: '%s'", cbrCIDR.String())
+	ip := cbrCIDR.IP.To4()
+	cbrCIDR := net.IPNet{net.IPv4(ip[0], ip[1], ip[2], ip[3]+1), cbrCIDR.Mask}
+	glog.Infof("New cbr-cidr: '%s'", cbrCIDR.String())
 	//	cmd := exec.Command("ip", "link", "set", "dev", "cbr0", "down")
 	//	glog.Infof("Running '%v'", cmd)
 	//	if err := cmd.Run(); err != nil {
