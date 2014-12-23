@@ -53,6 +53,12 @@ func Start() {
 		glog.Errorf("err: %v", err)
 	}
 
+	cmd = exec.Command("ip", "link", "set", "dev", "cbr0", "mtu", "1460")
+	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
+	if err := cmd.Run(); err != nil {
+		glog.Errorf("err: %v", err)
+	}
+
 	cmd = exec.Command("ip", "addr", "add", cbrCIDR.String(), "dev", "cbr0")
 	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
@@ -60,6 +66,12 @@ func Start() {
 	}
 
 	cmd = exec.Command("ip", "link", "set", "dev", "cbr0", "up")
+	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
+	if err := cmd.Run(); err != nil {
+		glog.Errorf("err: %v", err)
+	}
+
+	cmd = exec.Command("/etc/init.d/docker", "start")
 	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
