@@ -25,7 +25,7 @@ import (
 )
 
 func EnsureDocker() {
-	cmd := exec.Command("/etc/init.d/docker", "start")
+	cmd := exec.Command("/etc/init.d/docker", "restart")
 	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
@@ -34,8 +34,9 @@ func EnsureDocker() {
 
 func EnsureCBR0(cbrCIDR *net.IPNet) error {
 	ip := cbrCIDR.IP.Mask(cbrCIDR.Mask).To4()
+	// Grab the ip at the start of the range for the gateway (e.g. x.x.x.1 for a /24)
 	cbrGatewayCIDR := net.IPNet{net.IPv4(ip[0], ip[1], ip[2], ip[3]+1), cbrCIDR.Mask}
-	glog.Infof("New cbr-cidr: '%s'", cbrGatewayCIDR.String())
+	glog.Infof("gateway cidr: '%s'", cbrGatewayCIDR.String())
 
 	cmd := exec.Command("brctl", "addbr", "cbr0")
 	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
