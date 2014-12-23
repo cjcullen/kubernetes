@@ -17,35 +17,25 @@ limitations under the License.
 package node
 
 import (
-	"flag"
 	"net"
 	"os/exec"
 	"strings"
 
-	"github.com/GoogleCloudPlatform/kubernetes/pkg/util"
 	"github.com/golang/glog"
 )
 
-var cbrCIDR util.IPNet
-
-func init() {
-	flag.Var(&cbrCIDR, "cbr_cidr", "A CIDR notation IP range for the cbr0 bridge.")
+func EnsureDocker() {
+	cmd := exec.Command("/etc/init.d/docker", "start")
+	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
+	if err := cmd.Run(); err != nil {
+		glog.Errorf("err: %v", err)
+	}
 }
-func Start() {
-	ip := cbrCIDR.IP.To4()
-	cbrCIDR := net.IPNet{net.IPv4(ip[0], ip[1], ip[2], ip[3]+1), cbrCIDR.Mask}
-	glog.Infof("New cbr-cidr: '%s'", cbrCIDR.String())
-	//	cmd := exec.Command("ip", "link", "set", "dev", "cbr0", "down")
-	//	glog.Infof("Running '%v'", cmd)
-	//	if err := cmd.Run(); err != nil {
-	//		glog.Errorf("err: %v", err)
-	//	}
-	//
-	//	cmd = exec.Command("brctl", "delbr", "cbr0")
-	//	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
-	//	if err := cmd.Run(); err != nil {
-	//		glog.Errorf("err: %v", err)
-	//	}
+
+func EnsureCBR0(cbrCIDR *net.IPNet) error {
+	ip := cbrCIDR.IP.Mask(cbrCIDR.Mask).To4()
+	cbrGatewayCIDR := net.IPNet{net.IPv4(ip[0], ip[1], ip[2], ip[3]+1), cbrCIDR.Mask}
+	glog.Infof("New cbr-cidr: '%s'", cbrGatewayCIDR.String())
 
 	cmd := exec.Command("brctl", "addbr", "cbr0")
 	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
@@ -59,7 +49,7 @@ func Start() {
 		glog.Errorf("err: %v", err)
 	}
 
-	cmd = exec.Command("ip", "addr", "add", cbrCIDR.String(), "dev", "cbr0")
+	cmd = exec.Command("ip", "addr", "add", cbrGatewayCIDR.String(), "dev", "cbr0")
 	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
@@ -70,10 +60,5 @@ func Start() {
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
-
-	cmd = exec.Command("/etc/init.d/docker", "start")
-	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
-	if err := cmd.Run(); err != nil {
-		glog.Errorf("err: %v", err)
-	}
+	return nil
 }

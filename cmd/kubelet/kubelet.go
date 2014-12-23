@@ -63,12 +63,14 @@ var (
 	authPath                = flag.String("auth_path", "", "Path to .kubernetes_auth file, specifying how to authenticate to API server.")
 	cAdvisorPort            = flag.Uint("cadvisor_port", 4194, "The port of the localhost cAdvisor endpoint")
 	apiServerList           util.StringList
+	cbrCIDR                 util.IPNet
 )
 
 func init() {
 	flag.Var(&etcdServerList, "etcd_servers", "List of etcd servers to watch (http://ip:port), comma separated. Mutually exclusive with -etcd_config")
 	flag.Var(&address, "address", "The IP address for the info server to serve on (set to 0.0.0.0 for all interfaces)")
 	flag.Var(&apiServerList, "api_servers", "List of Kubernetes API servers to publish events to. (ip:port), comma separated.")
+	flag.Var(&cbrCIDR, "cbr_cidr", "A CIDR notation IP range for the cbr0 bridge.")
 }
 
 func setupRunOnce() {
@@ -89,9 +91,8 @@ func main() {
 	defer util.FlushLogs()
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	glog.Infof("Calling node.Start()")
-	node.Start()
-	glog.Infof("node.Start() completed")
+	node.EnsureCBR0((*net.IPNet)(&cbrCIDR))
+	node.EnsureDocker()
 
 	verflag.PrintAndExitIfRequested()
 
