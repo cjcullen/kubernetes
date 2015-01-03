@@ -38,7 +38,7 @@ grains:
   cloud: gce
 EOF
 
-DOCKER_OPTS=""
+DOCKER_OPTS="--bip ${MINION_IP_RANGE}"
 
 if [[ -n "${EXTRA_DOCKER_OPTS-}" ]]; then
   DOCKER_OPTS="${EXTRA_DOCKER_OPTS}"

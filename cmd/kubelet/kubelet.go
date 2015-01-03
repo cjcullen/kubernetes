@@ -91,7 +91,7 @@ func main() {
 	defer util.FlushLogs()
 	rand.Seed(time.Now().UTC().UnixNano())
 
-	node.EnsureCBR0((*net.IPNet)(&cbrCIDR))
+	//node.EnsureCBR0((*net.IPNet)(&cbrCIDR))
 	node.EnsureDocker()
 
 	verflag.PrintAndExitIfRequested()
