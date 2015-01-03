@@ -38,7 +38,8 @@ grains:
   cloud: gce
 EOF
 
-DOCKER_OPTS="--bip ${MINION_IP_RANGE}"
+DOCKER_RANGE=`echo ${MINION_IP_RANGE} | sed -e "s/.0\//.1\//g"`
+DOCKER_OPTS="--bip ${DOCKER_RANGE}"
 
 if [[ -n "${EXTRA_DOCKER_OPTS-}" ]]; then
   DOCKER_OPTS="${DOCKER_OPTS} ${EXTRA_DOCKER_OPTS}"
