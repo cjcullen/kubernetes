@@ -41,7 +41,7 @@ EOF
 DOCKER_OPTS="--bip ${MINION_IP_RANGE}"
 
 if [[ -n "${EXTRA_DOCKER_OPTS-}" ]]; then
-  DOCKER_OPTS="${EXTRA_DOCKER_OPTS}"
+  DOCKER_OPTS="${DOCKER_OPTS} ${EXTRA_DOCKER_OPTS}"
 fi
 
 # Decide if enable the cache
