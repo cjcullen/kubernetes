@@ -21,10 +21,17 @@ import (
 	"os/exec"
 	"strings"
 
+	utilexec "github.com/GoogleCloudPlatform/kubernetes/pkg/util/exec"
+	"github.com/GoogleCloudPlatform/kubernetes/pkg/util/iptables"
 	"github.com/golang/glog"
 )
 
 func EnsureDocker() {
+	ipt := iptables.New(utilexec.New(), iptables.ProtocolIpv4)
+	if _, err := ipt.EnsureRule(iptables.TableNAT, iptables.ChainPostrouting, "-o eth0", "-j MASQUERADE", "\\! -d 10.0.0.0/8"); err != nil {
+		glog.Errorf("err: %v", err)
+	}
+
 	cmd := exec.Command("ip", "addr", "flush", "dev", "docker0")
 	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
