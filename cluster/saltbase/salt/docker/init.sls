@@ -98,13 +98,4 @@ lxc-docker-{{ docker_ver }}:
     - sources:
       - lxc-docker-{{ docker_ver }}: /var/cache/docker-install/{{ deb }}
 
-docker:
-  service.running:
-    - enable: True
-    - require:
-      - pkg: lxc-docker-{{ docker_ver }}
-    - watch:
-      - file: {{ environment_file }}
-      - pkg: lxc-docker-{{ docker_ver }}
-
 {% endif %}
