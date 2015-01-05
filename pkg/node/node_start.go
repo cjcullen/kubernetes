@@ -25,6 +25,11 @@ import (
 )
 
 func EnsureDocker() {
+	cmd := exec.Command("ip", "addr", "flush", "dev", "docker0")
+	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
+	if err := cmd.Run(); err != nil {
+		glog.Errorf("err: %v", err)
+	}
 
 	cmd := exec.Command("/etc/init.d/docker", "restart")
 	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
