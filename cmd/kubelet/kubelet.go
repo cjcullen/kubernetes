@@ -92,7 +92,7 @@ func main() {
 	rand.Seed(time.Now().UTC().UnixNano())
 
 	//node.EnsureCBR0((*net.IPNet)(&cbrCIDR))
-	node.EnsureDocker()
+	node.EnsureDocker((*net.IPNet)(&cbrCIDR))
 
 	verflag.PrintAndExitIfRequested()
 

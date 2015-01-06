@@ -26,7 +26,7 @@ import (
 	"github.com/golang/glog"
 )
 
-func EnsureDocker() {
+func EnsureDocker(cbrCIDR *net.IPNet) {
 	ipt := iptables.New(utilexec.New(), iptables.ProtocolIpv4)
 	if _, err := ipt.EnsureRule(iptables.TableNAT, iptables.ChainPostrouting, "!", "-d", "10.0.0.0/8", "-o", "eth0", "-j", "MASQUERADE"); err != nil {
 		glog.Errorf("err: %v", err)
@@ -38,11 +38,27 @@ func EnsureDocker() {
 		glog.Errorf("err: %v", err)
 	}
 
-	cmd = exec.Command("/etc/init.d/docker", "restart")
+	ip := cbrCIDR.IP.Mask(cbrCIDR.Mask).To4()
+	// Grab the ip at the start of the range for the gateway (e.g. x.x.x.1 for a /24)
+	cbrGatewayCIDR := net.IPNet{net.IPv4(ip[0], ip[1], ip[2], ip[3]+1), cbrCIDR.Mask}
+
+	cmd = exec.Command("ip", "addr", "add", cbrGatewayCIDR.String(), "dev", "docker0")
 	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
 		glog.Errorf("err: %v", err)
 	}
+
+	cmd = exec.Command("ip", "link", "set", "dev", "docker0", "mtu", "1460")
+	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
+	if err := cmd.Run(); err != nil {
+		glog.Errorf("err: %v", err)
+	}
+
+	//	cmd = exec.Command("/etc/init.d/docker", "restart")
+	//	glog.Infof("Running '%v'", strings.Join(cmd.Args, " "))
+	//	if err := cmd.Run(); err != nil {
+	//		glog.Errorf("err: %v", err)
+	//	}
 }
 
 func EnsureCBR0(cbrCIDR *net.IPNet) error {
