@@ -28,7 +28,7 @@ import (
 
 func EnsureDocker() {
 	ipt := iptables.New(utilexec.New(), iptables.ProtocolIpv4)
-	if _, err := ipt.EnsureRule(iptables.TableNAT, iptables.ChainPostrouting, "! -d 10.0.0.0/8", "-o eth0", "-j MASQUERADE"); err != nil {
+	if _, err := ipt.EnsureRule(iptables.TableNAT, iptables.ChainPostrouting, "!", "-d", "10.0.0.0/8", "-o", "eth0", "-j", "MASQUERADE"); err != nil {
 		glog.Errorf("err: %v", err)
 	}
 
