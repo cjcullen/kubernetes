@@ -186,11 +186,6 @@ func newEtcd(etcdConfigFile string, etcdServerList util.StringList, storageVersi
 	return master.NewEtcdHelper(client, storageVersion)
 }
 
-// TODO: When the apiserver terminates SSL, that port will be in the config
-// and we can point to it. Until then, it's not worth plumbing this value
-// through the salt configs.
-const nginxHTTPSPort = 443
-
 // Run runs the specified APIServer.  This should never exit.
 func (s *APIServer) Run(_ []string) error {
 	s.verifyPortalFlags()
@@ -256,7 +251,7 @@ func (s *APIServer) Run(_ []string) error {
 		APIPrefix:              s.APIPrefix,
 		CorsAllowedOriginList:  s.CorsAllowedOriginList,
 		ReadOnlyPort:           s.ReadOnlyPort,
-		ReadWritePort:          nginxHTTPSPort,
+		ReadWritePort:          s.SecurePort,
 		PublicAddress:          net.IP(s.PublicAddressOverride),
 		Authenticator:          authenticator,
 		Authorizer:             authorizer,
