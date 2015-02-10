@@ -47,7 +47,7 @@ var _ = Describe("Services", func() {
 
 		// All the names we need to be able to resolve.
 		namesToResolve := []string{
-			"kubernetes"
+			"kubernetes",
 			"kubernetes-ro",
 			"kubernetes-ro.default",
 			"kubernetes-ro.default.kubernetes.local",
