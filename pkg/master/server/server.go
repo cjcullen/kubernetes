@@ -251,7 +251,7 @@ func (s *APIServer) Run(_ []string) error {
 		APIPrefix:              s.APIPrefix,
 		CorsAllowedOriginList:  s.CorsAllowedOriginList,
 		ReadOnlyPort:           s.ReadOnlyPort,
-		ReadWritePort:          s.SecurePort,
+		ReadWritePort:          s.Port,
 		PublicAddress:          net.IP(s.PublicAddressOverride),
 		Authenticator:          authenticator,
 		Authorizer:             authorizer,
