@@ -223,7 +223,7 @@ func (gce *GCECloud) Routes() (cloudprovider.Routes, bool) {
 
 func makeHostURL(projectID, zone, host string) string {
 	host = canonicalizeInstanceName(host)
-	return fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/zones/%s/instances/%s",
+	return fmt.Sprintf("https://www.googleapis.com/compute/staging-alpha/projects/%s/zones/%s/instances/%s",
 		projectID, zone, host)
 }
 
@@ -241,7 +241,7 @@ func hostURLToComparablePath(hostURL string) string {
 }
 
 func (gce *GCECloud) targetPoolURL(name, region string) string {
-	return fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/regions/%s/targetPools/%s", gce.projectID, region, name)
+	return fmt.Sprintf("https://www.googleapis.com/compute/staging-alpha/projects/%s/regions/%s/targetPools/%s", gce.projectID, region, name)
 }
 
 func waitForOp(op *compute.Operation, getOperation func() (*compute.Operation, error)) error {
@@ -1389,7 +1389,7 @@ func (gce *GCECloud) ListRoutes(clusterName string) ([]*cloudprovider.Route, err
 }
 
 func gceNetworkURL(project, network string) string {
-	return fmt.Sprintf("https://www.googleapis.com/compute/v1/projects/%s/global/networks/%s", project, network)
+	return fmt.Sprintf("https://www.googleapis.com/compute/staging-alpha/projects/%s/global/networks/%s", project, network)
 }
 
 func (gce *GCECloud) CreateRoute(clusterName string, nameHint string, route *cloudprovider.Route) error {
@@ -1490,7 +1490,7 @@ func (gce *GCECloud) convertDiskToAttachedDisk(disk *compute.Disk, readWrite str
 		DeviceName: disk.Name,
 		Kind:       disk.Kind,
 		Mode:       readWrite,
-		Source:     "https://" + path.Join("www.googleapis.com/compute/v1/projects/", gce.projectID, "zones", gce.zone, "disks", disk.Name),
+		Source:     "https://" + path.Join("www.googleapis.com/compute/staging-alpha/projects/", gce.projectID, "zones", gce.zone, "disks", disk.Name),
 		Type:       "PERSISTENT",
 	}
 }
