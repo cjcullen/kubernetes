@@ -17,10 +17,14 @@ limitations under the License.
 package unversioned
 
 import (
+	"fmt"
 	"crypto/tls"
 	"net/http"
 
 	"k8s.io/kubernetes/pkg/client/transport"
+	
+	"golang.org/x/net/context"
+	"golang.org/x/oauth2/google"
 )
 
 // TLSConfigFor returns a tls.Config that will provide the transport level security defined
@@ -46,6 +50,21 @@ func HTTPWrappersForConfig(config *Config, rt http.RoundTripper) (http.RoundTrip
 
 // transportConfig converts a client config to an appropriate transport config.
 func (c *Config) transportConfig() *transport.Config {
+	bearerToken := c.BearerToken
+	if bearerToken == "gcloud" {
+		fmt.Printf("Using gcloud application default credentials")
+		ts, err := google.DefaultTokenSource(context.TODO(),"https://www.googleapis.com/auth/cloud-platform")
+		if err != nil {
+			fmt.Printf("DefautlTokenSource() err: %v\n", err)
+		} else {
+			token, err := ts.Token()
+			if err != nil {
+				fmt.Printf("Token() err: %v\n", err)
+			} else {
+				bearerToken = token.AccessToken
+			}
+		}
+	}
 	return &transport.Config{
 		UserAgent:     c.UserAgent,
 		Transport:     c.Transport,
@@ -61,6 +80,6 @@ func (c *Config) transportConfig() *transport.Config {
 		},
 		Username:    c.Username,
 		Password:    c.Password,
-		BearerToken: c.BearerToken,
+		BearerToken: bearerToken,
 	}
 }

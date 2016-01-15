@@ -17,6 +17,7 @@ limitations under the License.
 package transport
 
 import "net/http"
+import "fmt"
 
 // Config holds various options for establishing a transport.
 type Config struct {
@@ -59,6 +60,8 @@ func (c *Config) HasBasicAuth() bool {
 
 // HasTokenAuth returns whether the configuration has token authentication or not.
 func (c *Config) HasTokenAuth() bool {
+	fmt.Println("Checking bearer auth")
+	fmt.Printf("BearerToken: %q\n", c.BearerToken)
 	return len(c.BearerToken) != 0
 }
 

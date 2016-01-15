@@ -196,6 +196,9 @@ func makeUserIdentificationConfig(info clientauth.Info) *client.Config {
 	config.CertFile = info.CertFile
 	config.KeyFile = info.KeyFile
 	config.BearerToken = info.BearerToken
+	if (info.BearerToken == "gcloud") {
+		fmt.Printf("Looking up token in gcloud config")
+	}
 	return config
 }
 

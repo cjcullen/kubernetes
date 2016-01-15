@@ -305,6 +305,7 @@ func Run(s *options.APIServer) error {
 		BasicAuthFile:             s.BasicAuthFile,
 		ClientCAFile:              s.ClientCAFile,
 		TokenAuthFile:             s.TokenAuthFile,
+		TokenAuthProvider:         s.TokenAuthProvider,
 		OIDCIssuerURL:             s.OIDCIssuerURL,
 		OIDCClientID:              s.OIDCClientID,
 		OIDCCAFile:                s.OIDCCAFile,

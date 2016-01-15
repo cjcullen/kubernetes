@@ -22,6 +22,8 @@ import (
 	"io"
 	"os"
 	"strings"
+	
+	"github.com/golang/glog"
 
 	"k8s.io/kubernetes/pkg/auth/user"
 )
@@ -70,6 +72,7 @@ func NewCSV(path string) (*TokenAuthenticator, error) {
 }
 
 func (a *TokenAuthenticator) AuthenticateToken(value string) (user.Info, bool, error) {
+	glog.Infof("trying to validate token: %q", value)
 	user, ok := a.tokens[value]
 	if !ok {
 		return nil, false, nil

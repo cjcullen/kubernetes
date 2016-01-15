@@ -30,12 +30,14 @@ import (
 	"k8s.io/kubernetes/plugin/pkg/auth/authenticator/request/x509"
 	"k8s.io/kubernetes/plugin/pkg/auth/authenticator/token/oidc"
 	"k8s.io/kubernetes/plugin/pkg/auth/authenticator/token/tokenfile"
+	gcptoken "k8s.io/kubernetes/plugin/pkg/auth/authenticator/token/gcp"
 )
 
 type AuthenticatorConfig struct {
 	BasicAuthFile             string
 	ClientCAFile              string
 	TokenAuthFile             string
+	TokenAuthProvider         string
 	OIDCIssuerURL             string
 	OIDCClientID              string
 	OIDCCAFile                string
@@ -73,6 +75,17 @@ func New(config AuthenticatorConfig) (authenticator.Request, error) {
 			return nil, err
 		}
 		authenticators = append(authenticators, tokenAuth)
+	}
+	
+	if len(config.TokenAuthProvider) > 0 {
+		if config.TokenAuthProvider != "gcp" {
+			return nil, fmt.Errorf("Unknown TokenAuthProvider: %q", config.TokenAuthProvider)
+		}
+		gcpAuth, err := newGCPAuthenticator()
+		if err != nil {
+			return nil, err
+		}
+		authenticators = append(authenticators, gcpAuth)
 	}
 
 	if len(config.OIDCIssuerURL) > 0 && len(config.OIDCClientID) > 0 {
@@ -133,6 +146,16 @@ func newAuthenticatorFromTokenFile(tokenAuthFile string) (authenticator.Request,
 	}
 
 	return bearertoken.New(tokenAuthenticator), nil
+}
+
+// newGCPAuthenticator returns an authenticator.Request or an error
+func newGCPAuthenticator() (authenticator.Request, error) {
+	gcpTokenAuthenticator, err := gcptoken.New()
+	if err != nil {
+		return nil, err
+	}
+
+	return bearertoken.New(gcpTokenAuthenticator), nil
 }
 
 // newAuthenticatorFromOIDCIssuerURL returns an authenticator.Request or an error.
