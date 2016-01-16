@@ -1,6 +1,6 @@
 {
 	"ImportPath": "k8s.io/kubernetes",
-	"GoVersion": "go1.5.1",
+	"GoVersion": "go1.5.3",
 	"Packages": [
 		"./..."
 	],
@@ -44,8 +44,8 @@
 		},
 		{
 			"ImportPath": "github.com/appc/spec/schema",
-			"Comment": "v0.7.4",
-			"Rev": "0875c991a496fe2b65ed296551c667b199a6bfb8"
+			"Comment": "v0.7.4-10-gc942157",
+			"Rev": "c942157af3e5ae7bceeb88b4239e33d6b9df91d9"
 		},
 		{
 			"ImportPath": "github.com/aws/aws-sdk-go/aws",
@@ -121,8 +121,8 @@
 			"Rev": "3e36af6d3af0e56fa3da71099f864933dea3d9fb"
 		},
 		{
-			"ImportPath": "github.com/camlistore/camlistore/pkg/errorutil",
-			"Rev": "9868aa0f8d8a93ff0b30ff0de46cc351b6b88b30"
+			"ImportPath": "github.com/camlistore/go4/errorutil",
+			"Rev": "3b6feb5cf32f573fb124905de36a54c24ee14ac1"
 		},
 		{
 			"ImportPath": "github.com/codegangsta/negroni",
@@ -811,17 +811,13 @@
 			"Rev": "37aabad69cfd3d20b8390d902a8b10e245c615ff"
 		},
 		{
-			"ImportPath": "github.com/seccomp/libseccomp-golang",
-			"Rev": "1b506fc7c24eec5a3693cdcbed40d9c226cfc6a1"
-		},
-		{
 			"ImportPath": "github.com/shurcooL/sanitized_anchor_name",
 			"Rev": "9a8b7d4e8f347bfa230879db9d7d4e4d9e19f962"
 		},
 		{
 			"ImportPath": "github.com/skynetservices/skydns/msg",
 			"Comment": "2.5.1a",
-			"Rev": "1be70b5b8aa07acccd972146d84011b670af88b4"
+			"Rev": "32647de578bf76154ea942f53944b5e9f1e8b91e"
 		},
 		{
 			"ImportPath": "github.com/spf13/cobra",
@@ -912,10 +908,6 @@
 			"Rev": "b5adcc2dcdf009d0391547edc6ecbaff889f5bb9"
 		},
 		{
-			"ImportPath": "golang.org/x/sys/unix",
-			"Rev": "833a04a10549a95dc34458c195cbad61bbb6cb4d"
-		},
-		{
 			"ImportPath": "golang.org/x/tools/go/ast/astutil",
 			"Rev": "4f50f44d7a3206e9e28b984e023efce2a4a75369"
 		},
@@ -937,6 +929,10 @@
 		},
 		{
 			"ImportPath": "google.golang.org/api/googleapi",
+			"Rev": "0c2979aeaa5b573e60d3ddffe5ce8dca8df309bd"
+		},
+		{
+			"ImportPath": "google.golang.org/api/oauth2/v2",
 			"Rev": "0c2979aeaa5b573e60d3ddffe5ce8dca8df309bd"
 		},
 		{

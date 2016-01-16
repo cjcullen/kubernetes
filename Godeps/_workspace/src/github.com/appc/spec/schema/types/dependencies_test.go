@@ -12,28 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package schema
+package types
 
-import (
-	"github.com/appc/spec/schema/types"
-)
+import "testing"
 
-const (
-	// version represents the canonical version of the appc spec and tooling.
-	// For now, the schema and tooling is coupled with the spec itself, so
-	// this must be kept in sync with the VERSION file in the root of the repo.
-	version string = "0.7.4+git"
-)
+func TestEmptyHash(t *testing.T) {
+	dj := `{"imageName": "example.com/reduce-worker-base"}`
 
-var (
-	// AppContainerVersion is the SemVer representation of version
-	AppContainerVersion types.SemVer
-)
+	var d Dependency
 
-func init() {
-	v, err := types.NewSemVer(version)
+	err := d.UnmarshalJSON([]byte(dj))
 	if err != nil {
-		panic(err)
+		t.Fatalf("unexpected error: %v", err)
 	}
-	AppContainerVersion = *v
+
+	// Marshal to verify that marshalling works without validation errors
+	buf, err := d.MarshalJSON()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Unmarshal to verify that the generated json will not create wrong empty hash
+	err = d.UnmarshalJSON(buf)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }

@@ -19,6 +19,8 @@ package authenticator
 import (
 	"crypto/rsa"
 
+	_ "google.golang.org/api/oauth2/v2"
+
 	"k8s.io/kubernetes/pkg/auth/authenticator"
 	"k8s.io/kubernetes/pkg/auth/authenticator/bearertoken"
 	"k8s.io/kubernetes/pkg/serviceaccount"
