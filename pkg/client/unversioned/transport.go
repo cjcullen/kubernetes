@@ -17,12 +17,14 @@ limitations under the License.
 package unversioned
 
 import (
-	"fmt"
 	"crypto/tls"
+	"fmt"
 	"net/http"
+	"os"
 
 	"k8s.io/kubernetes/pkg/client/transport"
-	
+	"k8s.io/kubernetes/pkg/util"
+
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 )
@@ -52,14 +54,15 @@ func HTTPWrappersForConfig(config *Config, rt http.RoundTripper) (http.RoundTrip
 func (c *Config) transportConfig() *transport.Config {
 	bearerToken := c.BearerToken
 	if bearerToken == "gcloud" {
-		fmt.Printf("Using gcloud application default credentials")
-		ts, err := google.DefaultTokenSource(context.TODO(),"https://www.googleapis.com/auth/cloud-platform")
+		ts, err := google.DefaultTokenSource(context.TODO(), "https://www.googleapis.com/auth/cloud-platform")
 		if err != nil {
 			fmt.Printf("DefautlTokenSource() err: %v\n", err)
 		} else {
-			token, err := ts.Token()
+			cacheFile := os.Getenv("HOME") + "/.kube/.cached_cred"
+			cachedSource := util.NewCachedTokenSource(ts, cacheFile)
+			token, err := cachedSource.Token()
 			if err != nil {
-				fmt.Printf("Token() err: %v\n", err)
+				bearerToken = ""
 			} else {
 				bearerToken = token.AccessToken
 			}

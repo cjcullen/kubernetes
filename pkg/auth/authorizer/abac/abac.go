@@ -219,11 +219,14 @@ func resourceMatches(p api.Policy, a authorizer.Attributes) bool {
 
 // Authorizer implements authorizer.Authorize
 func (pl policyList) Authorize(a authorizer.Attributes) error {
+	glog.Infof("Authorizing user: %q", a.GetUserName())
 	for _, p := range pl {
 		if matches(*p, a) {
+			glog.Infof("Attributes %#v matched policy: %#v", a, p)
 			return nil
 		}
 	}
+	glog.Infof("Attributes: %#v did not match any policy", a)
 	return errors.New("No policy matched.")
 	// TODO: Benchmark how much time policy matching takes with a medium size
 	// policy file, compared to other steps such as encoding/decoding.

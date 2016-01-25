@@ -17,11 +17,8 @@ limitations under the License.
 package gcp
 
 import (
-	"encoding/csv"
 	"fmt"
-	"io"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/golang/glog"
@@ -34,13 +31,29 @@ type GCPAuthenticator struct{
 	tokenService *googleoauth2.Service
 }
 
-// NewCSV returns a TokenAuthenticator, populated from a CSV file.
-// The CSV file must contain records in the format "token,username,useruid"
+// New returns a GCPAuthenticator.
 func New() (*GCPAuthenticator, error) {
-	return &GCPAuthenticator{googleoauth2.New(client)}
+	oauthClient, err := googleoauth2.New(&http.Client{})
+	if err != nil {
+		return nil, err
+	}
+	return &GCPAuthenticator{oauthClient}, nil
 }
 
 func (a *GCPAuthenticator) AuthenticateToken(value string) (user.Info, bool, error) {
 	glog.Infof("trying to validate token w/ GCP: %q", value)
-	return "asdf", nil
+	info, err := a.tokenService.Tokeninfo().AccessToken(value).Do()
+	if err != nil {
+		return nil, false, err
+	}
+	glog.Infof("TokenInfo: %#v", info)
+	if !strings.Contains(info.Scope, "https://www.googleapis.com/auth/cloud-platform") {
+		return nil, false, fmt.Errorf("Token does not contain cloud-platform scope")
+	}
+	name := info.IssuedTo
+	if info.Email != "" {
+		name = info.Email
+	}
+	glog.Infof("Returning Name: %q", name)
+	return &user.DefaultInfo{Name: name, UID: name}, true, nil
 }

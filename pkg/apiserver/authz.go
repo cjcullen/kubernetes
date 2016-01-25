@@ -22,6 +22,7 @@ import (
 
 	"k8s.io/kubernetes/pkg/auth/authorizer"
 	"k8s.io/kubernetes/pkg/auth/authorizer/abac"
+	"k8s.io/kubernetes/pkg/auth/authorizer/gcp"
 	"k8s.io/kubernetes/pkg/auth/authorizer/union"
 )
 
@@ -60,10 +61,11 @@ const (
 	ModeAlwaysAllow string = "AlwaysAllow"
 	ModeAlwaysDeny  string = "AlwaysDeny"
 	ModeABAC        string = "ABAC"
+	ModeGCP         string = "GCP"
 )
 
 // Keep this list in sync with constant list above.
-var AuthorizationModeChoices = []string{ModeAlwaysAllow, ModeAlwaysDeny, ModeABAC}
+var AuthorizationModeChoices = []string{ModeAlwaysAllow, ModeAlwaysDeny, ModeABAC, ModeGCP}
 
 // NewAuthorizerFromAuthorizationConfig returns the right sort of union of multiple authorizer.Authorizer objects
 // based on the authorizationMode or an error.  authorizationMode should be a comma separated values
@@ -96,6 +98,8 @@ func NewAuthorizerFromAuthorizationConfig(authorizationModes []string, authoriza
 				return nil, err
 			}
 			authorizers = append(authorizers, abacAuthorizer)
+		case ModeGCP:
+			authorizers = append(authorizers, gcp.New())
 		default:
 			return nil, fmt.Errorf("Unknown authorization mode %s specified", authorizationMode)
 		}
