@@ -48,6 +48,9 @@ type Attributes interface {
 	// The kind of object, if a request is for a REST object.
 	GetResource() string
 
+	// The name of the object, if a request is for a REST object.
+	GetResourceName() string
+
 	// The group of the resource, if a request is for a REST object.
 	GetAPIGroup() string
 
@@ -84,6 +87,7 @@ type AttributesRecord struct {
 	Namespace       string
 	APIGroup        string
 	Resource        string
+	ResourceName    string
 	ResourceRequest bool
 	Path            string
 }
@@ -110,6 +114,10 @@ func (a AttributesRecord) GetNamespace() string {
 
 func (a AttributesRecord) GetResource() string {
 	return a.Resource
+}
+
+func (a AttributesRecord) GetResourceName() string {
+	return a.ResourceName
 }
 
 func (a AttributesRecord) GetAPIGroup() string {

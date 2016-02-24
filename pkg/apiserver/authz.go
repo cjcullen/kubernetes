@@ -22,7 +22,9 @@ import (
 
 	"k8s.io/kubernetes/pkg/auth/authorizer"
 	"k8s.io/kubernetes/pkg/auth/authorizer/abac"
+	"k8s.io/kubernetes/pkg/auth/authorizer/gcp"
 	"k8s.io/kubernetes/pkg/auth/authorizer/union"
+	clientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	"k8s.io/kubernetes/plugin/pkg/auth/authorizer/webhook"
 )
 
@@ -62,10 +64,11 @@ const (
 	ModeAlwaysDeny  string = "AlwaysDeny"
 	ModeABAC        string = "ABAC"
 	ModeWebhook     string = "Webhook"
+	ModeGCP         string = "GCP"
 )
 
 // Keep this list in sync with constant list above.
-var AuthorizationModeChoices = []string{ModeAlwaysAllow, ModeAlwaysDeny, ModeABAC, ModeWebhook}
+var AuthorizationModeChoices = []string{ModeAlwaysAllow, ModeAlwaysDeny, ModeABAC, ModeWebhook, ModeGCP}
 
 type AuthorizationConfig struct {
 	// Options for ModeABAC
@@ -77,12 +80,14 @@ type AuthorizationConfig struct {
 
 	// Kubeconfig file for Webhook authorization plugin.
 	WebhookConfigFile string
+
+	GCPAuthzURL string
 }
 
 // NewAuthorizerFromAuthorizationConfig returns the right sort of union of multiple authorizer.Authorizer objects
 // based on the authorizationMode or an error.  authorizationMode should be a comma separated values
 // of AuthorizationModeChoices.
-func NewAuthorizerFromAuthorizationConfig(authorizationModes []string, config AuthorizationConfig) (authorizer.Authorizer, error) {
+func NewAuthorizerFromAuthorizationConfig(client clientset.Interface, authorizationModes []string, config AuthorizationConfig) (authorizer.Authorizer, error) {
 
 	if len(authorizationModes) == 0 {
 		return nil, errors.New("Atleast one authorization mode should be passed")
@@ -119,6 +124,11 @@ func NewAuthorizerFromAuthorizationConfig(authorizationModes []string, config Au
 				return nil, err
 			}
 			authorizers = append(authorizers, webhookAuthorizer)
+		case ModeGCP:
+			if len(config.GCPAuthzURL) == 0 {
+				return nil, errors.New("Must specify --gcp-authorization-url for mode GCP")
+			}
+			authorizers = append(authorizers, gcp.New(client, config.GCPAuthzURL))
 		default:
 			return nil, fmt.Errorf("Unknown authorization mode %s specified", authorizationMode)
 		}
