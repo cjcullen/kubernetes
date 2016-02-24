@@ -9,6 +9,12 @@
     - mode: 600
 #    - watch_in:
 #      - service: kube-apiserver
+/srv/kubernetes/policy.jsonl:
+  file.managed:
+    - source: salt://kube-apiserver/policy.jsonl
+    - user: root
+    - group: root
+    - mode: 600
 {% endif %}
 {% endif %}
 

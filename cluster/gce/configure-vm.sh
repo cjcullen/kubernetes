@@ -27,6 +27,7 @@ is_push=$@
 
 readonly KNOWN_TOKENS_FILE="/srv/salt-overlay/salt/kube-apiserver/known_tokens.csv"
 readonly BASIC_AUTH_FILE="/srv/salt-overlay/salt/kube-apiserver/basic_auth.csv"
+readonly ABAC_POLICY_FILE="/srv/salt-overlay/salt/kube-apiserver/policy.jsonl"
 
 function ensure-basic-networking() {
   # Deal with GCE networking bring-up race. (We rely on DNS for a lot,
@@ -573,6 +574,7 @@ function create-salt-master-auth() {
     (umask 077;
       echo "${KUBE_PASSWORD},${KUBE_USER},admin" > "${BASIC_AUTH_FILE}")
   fi
+  local -r service_accounts=("system:scheduler" "system:controller_manager" "system:logging" "system:monitoring")
   if [ ! -e "${KNOWN_TOKENS_FILE}" ]; then
     mkdir -p /srv/salt-overlay/salt/kube-apiserver
     (umask 077;
@@ -585,11 +587,20 @@ function create-salt-master-auth() {
     # NB: If this list ever changes, this script actually has to
     # change to detect the existence of this file, kill any deleted
     # old tokens and add any new tokens (to handle the upgrade case).
-    local -r service_accounts=("system:scheduler" "system:controller_manager" "system:logging" "system:monitoring")
     for account in "${service_accounts[@]}"; do
       token=$(dd if=/dev/urandom bs=128 count=1 2>/dev/null | base64 | tr -d "=+/" | dd bs=32 count=1 2>/dev/null)
       echo "${token},${account},${account}" >> "${KNOWN_TOKENS_FILE}"
     done
+  fi
+  if [ ! -e "${ABAC_POLICY_FILE}" ]; then
+    local -r system_identites=("admin" "kubelet" "kube_proxy" "kubecfg" "client")
+    mkdir -p /srv/salt-overlay/salt/kube-apiserver
+    (umask 077;
+      # Add rules for service accounts and other system identities.
+      for user in "${system_identites[@]}" "${service_accounts[@]}"; do
+        echo "{\"apiVersion\": \"abac.authorization.kubernetes.io/v1beta1\", \"kind\": \"Policy\", \"spec\": {\"user\":\"${user}\", \"namespace\": \"*\", \"resource\": \"*\", \"apiGroup\": \"*\", \"nonResourcePath\": \"*\"}}" >> "${ABAC_POLICY_FILE}";
+      done)
+    echo "{\"apiVersion\": \"abac.authorization.kubernetes.io/v1beta1\", \"kind\": \"Policy\", \"spec\": {\"group\":\"system:serviceaccounts\", \"namespace\": \"*\", \"resource\": \"*\", \"apiGroup\": \"*\", \"nonResourcePath\": \"*\"}}" >> "${ABAC_POLICY_FILE}";
   fi
 }
 
