@@ -7,6 +7,8 @@
 {% set cloud_config = "" -%}
 {% set cloud_config_mount = "" -%}
 {% set cloud_config_volume = "" -%}
+{% set authorization_url = "" -%}
+{% set additional_authz_providers = "" -%}
 
 {% if grains.cloud is defined -%}
   {% if grains.cloud not in ['vagrant', 'vsphere'] -%}
@@ -18,6 +20,11 @@
     {% set cloud_config_mount = "{\"name\": \"cloudconfigmount\",\"mountPath\": \"" + grains.cloud_config + "\", \"readOnly\": true}," -%}
     {% set cloud_config_volume = "{\"name\": \"cloudconfigmount\",\"hostPath\": {\"path\": \"" + grains.cloud_config + "\"}}," -%}
   {% endif -%}
+{% endif -%}
+
+{% if grains.authorization_url is defined -%}
+  {% set authorization_url = " --authorization_url=" + grains.authorization_url -%}
+  {% set additional_authz_providers = additional_authz_providers + ",GCP" -%}
 {% endif -%}
 
 {% set advertise_address = "" -%}
@@ -91,8 +98,9 @@
   {% set log_level = pillar['api_server_test_log_level'] -%}
 {% endif -%}
 
-{% set params = address + " " + etcd_servers + " " + etcd_servers_overrides + " " + cloud_provider + " " + cloud_config + " " + runtime_config + " " + admission_control + " " + service_cluster_ip_range + " " + client_ca_file + " " + basic_auth_file + " " + min_request_timeout -%}
-{% set params = params + " " + cert_file + " " + key_file + " --secure-port=" + secure_port + " " + token_auth_file + " " + bind_address + " " + log_level + " " + advertise_address  + " " + proxy_ssh_options + " --authorization-mode=ABAC --authorization-policy-file=/srv/kubernetes/policy.jsonl" -%}
+{% set params = address + " " + etcd_servers + " " + etcd_servers_overrides + " " + cloud_provider + " " + cloud_config + " " + runtime_config + " " + admission_control + " " + service_cluster_ip_range + " " + client_ca_file + " " + basic_auth_file + " " + min_request_timeout + authorization_url -%}
+
+{% set params = params + " " + cert_file + " " + key_file + " --secure-port=" + secure_port + " " + token_auth_file + " " + bind_address + " " + log_level + " " + advertise_address  + " " + proxy_ssh_options + " --authorization-mode=ABAC" + additional_authz_providers + " --authorization-policy-file=/srv/kubernetes/policy.jsonl" -%}
 
 # test_args has to be kept at the end, so they'll overwrite any prior configuration
 {% if pillar['apiserver_test_args'] is defined -%}

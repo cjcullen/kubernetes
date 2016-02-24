@@ -22,7 +22,9 @@ import (
 
 	"k8s.io/kubernetes/pkg/auth/authorizer"
 	"k8s.io/kubernetes/pkg/auth/authorizer/abac"
+	"k8s.io/kubernetes/pkg/auth/authorizer/gcp"
 	"k8s.io/kubernetes/pkg/auth/authorizer/union"
+	clientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 )
 
 // Attributes implements authorizer.Attributes interface.
@@ -60,15 +62,16 @@ const (
 	ModeAlwaysAllow string = "AlwaysAllow"
 	ModeAlwaysDeny  string = "AlwaysDeny"
 	ModeABAC        string = "ABAC"
+	ModeGCP         string = "GCP"
 )
 
 // Keep this list in sync with constant list above.
-var AuthorizationModeChoices = []string{ModeAlwaysAllow, ModeAlwaysDeny, ModeABAC}
+var AuthorizationModeChoices = []string{ModeAlwaysAllow, ModeAlwaysDeny, ModeABAC, ModeGCP}
 
 // NewAuthorizerFromAuthorizationConfig returns the right sort of union of multiple authorizer.Authorizer objects
 // based on the authorizationMode or an error.  authorizationMode should be a comma separated values
 // of AuthorizationModeChoices.
-func NewAuthorizerFromAuthorizationConfig(authorizationModes []string, authorizationPolicyFile string) (authorizer.Authorizer, error) {
+func NewAuthorizerFromAuthorizationConfig(client clientset.Interface, authorizationModes []string, authzPolicyFile, authzURL string) (authorizer.Authorizer, error) {
 
 	if len(authorizationModes) == 0 {
 		return nil, errors.New("Atleast one authorization mode should be passed")
@@ -88,21 +91,26 @@ func NewAuthorizerFromAuthorizationConfig(authorizationModes []string, authoriza
 		case ModeAlwaysDeny:
 			authorizers = append(authorizers, NewAlwaysDenyAuthorizer())
 		case ModeABAC:
-			if authorizationPolicyFile == "" {
+			if authzPolicyFile == "" {
 				return nil, errors.New("ABAC's authorization policy file not passed")
 			}
-			abacAuthorizer, err := abac.NewFromFile(authorizationPolicyFile)
+			abacAuthorizer, err := abac.NewFromFile(authzPolicyFile)
 			if err != nil {
 				return nil, err
 			}
 			authorizers = append(authorizers, abacAuthorizer)
+		case ModeGCP:
+			if len(authzURL) == 0 {
+				return nil, errors.New("Must specify --authorization-url for mode GCP")
+			}
+			authorizers = append(authorizers, gcp.New(client, authzURL))
 		default:
 			return nil, fmt.Errorf("Unknown authorization mode %s specified", authorizationMode)
 		}
 		authorizerMap[authorizationMode] = true
 	}
 
-	if !authorizerMap[ModeABAC] && authorizationPolicyFile != "" {
+	if !authorizerMap[ModeABAC] && authzPolicyFile != "" {
 		return nil, errors.New("Cannot specify --authorization-policy-file without mode ABAC")
 	}
 

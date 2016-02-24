@@ -712,6 +712,12 @@ EOF
     rm -f /etc/gce.conf
   fi
 
+  if [[ -n ${AUTHORIZATION_URL:-} ]]; then
+  cat <<EOF >>/etc/salt/minion.d/grains.conf
+  authorization_url: ${AUTHORIZATION_URL}
+EOF
+  fi
+
   # If the kubelet on the master is enabled, give it the same CIDR range
   # as a generic node.
   if [[ ! -z "${KUBELET_APISERVER:-}" ]] && [[ ! -z "${KUBELET_CERT:-}" ]] && [[ ! -z "${KUBELET_KEY:-}" ]]; then
