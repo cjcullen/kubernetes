@@ -82,6 +82,8 @@ type AuthInfo struct {
 	Username string `json:"username,omitempty"`
 	// Password is the password for basic authentication to the kubernetes cluster.
 	Password string `json:"password,omitempty"`
+	// AuthPlugin is a custom plugin used to authenticate to the kubernetes cluster.
+	AuthPlugin string `json:"auth-plugin,omitempty"`
 	// Extensions holds additional information. This is useful for extenders so that reads and writes don't clobber unknown fields
 	Extensions []NamedExtension `json:"extensions,omitempty"`
 }

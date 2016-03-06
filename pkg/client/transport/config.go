@@ -34,6 +34,9 @@ type Config struct {
 	// Bearer token for authentication
 	BearerToken string
 
+	// Plugin for custom authentication
+	AuthPlugin string
+
 	// Transport may be used for custom HTTP behavior. This attribute may
 	// not be specified with the TLS client certificate options. Use
 	// WrapTransport for most client level operations.
@@ -65,6 +68,11 @@ func (c *Config) HasTokenAuth() bool {
 // HasCertAuth returns whether the configuration has certificate authentication or not.
 func (c *Config) HasCertAuth() bool {
 	return len(c.TLS.CertData) != 0 || len(c.TLS.CertFile) != 0
+}
+
+// HasAuthPlugin returns whether the configuration has an authentication plugin.
+func (c *Config) HasAuthPlugin() bool {
+	return len(c.AuthPlugin) != 0
 }
 
 // TLSConfig holds the information needed to set up a TLS transport.

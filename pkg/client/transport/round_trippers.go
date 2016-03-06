@@ -44,6 +44,12 @@ func HTTPWrappersForConfig(config *Config, rt http.RoundTripper) (http.RoundTrip
 		rt = NewBearerAuthRoundTripper(config.BearerToken, rt)
 	case config.HasBasicAuth():
 		rt = NewBasicAuthRoundTripper(config.Username, config.Password, rt)
+	case config.HasAuthPlugin():
+		var err error
+		rt, err = NewPluginRoundTripper(config.AuthPlugin, rt)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if len(config.UserAgent) > 0 {
 		rt = NewUserAgentRoundTripper(config.UserAgent, rt)
@@ -302,4 +308,12 @@ func (rt *debuggingRoundTripper) RoundTrip(req *http.Request) (*http.Response, e
 
 func (rt *debuggingRoundTripper) WrappedRoundTripper() http.RoundTripper {
 	return rt.delegatedRoundTripper
+}
+
+func NewPluginRoundTripper(pluginName string, rt http.RoundTripper) (http.RoundTripper, error) {
+	plugin := GetRoundTripperPlugin(pluginName)
+	if plugin == nil {
+		return nil, fmt.Errorf("Unknown RoundTripperPlugin %q", pluginName)
+	}
+	return plugin.RoundTripper(rt)
 }
