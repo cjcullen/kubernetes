@@ -174,6 +174,9 @@ func getUserIdentificationPartialConfig(configAuthInfo clientcmdapi.AuthInfo, fa
 		mergedConfig.Username = configAuthInfo.Username
 		mergedConfig.Password = configAuthInfo.Password
 	}
+	if len(configAuthInfo.AuthPlugin) > 0 {
+		mergedConfig.AuthPlugin = configAuthInfo.AuthPlugin
+	}
 
 	// if there still isn't enough information to authenticate the user, try prompting
 	if !canIdentifyUser(*mergedConfig) && (fallbackReader != nil) {
@@ -214,7 +217,8 @@ func makeServerIdentificationConfig(info clientauth.Info) restclient.Config {
 func canIdentifyUser(config restclient.Config) bool {
 	return len(config.Username) > 0 ||
 		(len(config.CertFile) > 0 || len(config.CertData) > 0) ||
-		len(config.BearerToken) > 0
+		len(config.BearerToken) > 0 ||
+		len(config.AuthPlugin) > 0
 
 }
 

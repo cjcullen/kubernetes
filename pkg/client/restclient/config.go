@@ -62,6 +62,9 @@ type Config struct {
 	// TODO: demonstrate an OAuth2 compatible client.
 	BearerToken string
 
+	// Server requires plugin-specified authentication.
+	AuthPlugin string
+
 	// TLSClientConfig contains settings to enable transport layer security
 	TLSClientConfig
 
