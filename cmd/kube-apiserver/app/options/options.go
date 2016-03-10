@@ -62,6 +62,7 @@ type APIServer struct {
 	EtcdServersOverrides       []string
 	EventTTL                   time.Duration
 	ExternalHost               string
+	GCPAuthnURL                string
 	KeystoneURL                string
 	KubeletConfig              kubeletclient.KubeletClientConfig
 	KubernetesServiceNodePort  int
@@ -219,6 +220,7 @@ func (s *APIServer) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&s.AuthorizationConfig.PolicyFile, "authorization-policy-file", s.AuthorizationConfig.PolicyFile, "File with authorization policy in csv format, used with --authorization-mode=ABAC, on the secure port.")
 	fs.StringVar(&s.AuthorizationConfig.WebhookConfigFile, "authorization-webhook-config-file", s.AuthorizationConfig.WebhookConfigFile, "File with webhook configuration in kubeconfig format, used with --authorization-mode=Webhook. The API server will query the remote service to determine access on the API server's secure port.")
 	fs.StringVar(&s.AuthorizationConfig.GCPAuthzURL, "gcp-authorization-url", s.AuthorizationConfig.GCPAuthzURL, "URL for GCP authorization requests, used with --authorization-mode=GCP.")
+	fs.StringVar(&s.GCPAuthnURL, "gcp-authentication-url", s.GCPAuthnURL, "URL for remote GCP authentication requests.")
 	fs.StringVar(&s.AdmissionControl, "admission-control", s.AdmissionControl, "Ordered list of plug-ins to do admission control of resources into cluster. Comma-delimited list of: "+strings.Join(admission.GetPlugins(), ", "))
 	fs.StringVar(&s.AdmissionControlConfigFile, "admission-control-config-file", s.AdmissionControlConfigFile, "File with admission control configuration.")
 	fs.StringSliceVar(&s.EtcdServerList, "etcd-servers", s.EtcdServerList, "List of etcd servers to watch (http://ip:port), comma separated. Mutually exclusive with -etcd-config")
