@@ -229,6 +229,7 @@ func Run(s *options.APIServer) error {
 		ServiceAccountLookup:      s.ServiceAccountLookup,
 		ServiceAccountTokenGetter: serviceAccountGetter,
 		KeystoneURL:               s.KeystoneURL,
+		GCPAuthnURL:               s.GCPAuthnURL,
 	})
 
 	if err != nil {
