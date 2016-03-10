@@ -28,6 +28,7 @@ import (
 	"k8s.io/kubernetes/plugin/pkg/auth/authenticator/request/keystone"
 	"k8s.io/kubernetes/plugin/pkg/auth/authenticator/request/union"
 	"k8s.io/kubernetes/plugin/pkg/auth/authenticator/request/x509"
+	"k8s.io/kubernetes/plugin/pkg/auth/authenticator/token/gcp"
 	"k8s.io/kubernetes/plugin/pkg/auth/authenticator/token/oidc"
 	"k8s.io/kubernetes/plugin/pkg/auth/authenticator/token/tokenfile"
 )
@@ -45,6 +46,7 @@ type AuthenticatorConfig struct {
 	ServiceAccountLookup      bool
 	ServiceAccountTokenGetter serviceaccount.ServiceAccountTokenGetter
 	KeystoneURL               string
+	GCPAuthnURL               string
 }
 
 // New returns an authenticator.Request or an error that supports the standard
@@ -98,6 +100,10 @@ func New(config AuthenticatorConfig) (authenticator.Request, error) {
 			return nil, err
 		}
 		authenticators = append(authenticators, keystoneAuth)
+	}
+
+	if len(config.GCPAuthnURL) > 0 {
+		authenticators = append(authenticators, newGCPAuthenticatorFromURL(config.GCPAuthnURL))
 	}
 
 	switch len(authenticators) {
@@ -178,4 +184,8 @@ func newAuthenticatorFromKeystoneURL(keystoneConfigFile string) (authenticator.R
 	}
 
 	return basicauth.New(keystoneAuthenticator), nil
+}
+
+func newGCPAuthenticatorFromURL(gcpAuthnURL string) authenticator.Request {
+	return bearertoken.New(gcp.New(gcpAuthnURL))
 }

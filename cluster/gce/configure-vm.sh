@@ -718,6 +718,12 @@ EOF
 EOF
   fi
 
+  if [[ -n ${GCP_AUTHENTICATION_URL:-} ]]; then
+  cat <<EOF >>/etc/salt/minion.d/grains.conf
+  gcp_authentication_url: ${GCP_AUTHENTICATION_URL}
+EOF
+  fi
+
   # If the kubelet on the master is enabled, give it the same CIDR range
   # as a generic node.
   if [[ ! -z "${KUBELET_APISERVER:-}" ]] && [[ ! -z "${KUBELET_CERT:-}" ]] && [[ ! -z "${KUBELET_KEY:-}" ]]; then
