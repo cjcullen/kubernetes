@@ -29,11 +29,22 @@ import (
 	"google.golang.org/api/googleapi"
 
 	"k8s.io/kubernetes/pkg/auth/user"
+	"k8s.io/kubernetes/pkg/util"
 )
 
 type gcpAuthn struct {
 	oauthClient *http.Client
 	authnURL    string
+	cache       *util.ExpireCache
+}
+
+type authnEntry struct {
+	Email      string    `json:"email"`
+	ExpireTime time.Time `json:"expireTime"`
+}
+
+func (a *authnEntry) Expiration() time.Time {
+	return a.ExpireTime
 }
 
 // New creates a new GCP Authentication plugin from the specified URL.
@@ -42,11 +53,16 @@ func New(authnURL string) *gcpAuthn {
 	return &gcpAuthn{
 		oauthClient: oc,
 		authnURL:    authnURL,
+		cache:       util.NewExpireCache(1024),
 	}
 }
 
 // AuthenticateToken implements authenticator.Token
 func (g *gcpAuthn) AuthenticateToken(token string) (user.Info, bool, error) {
+	if entry, ok := g.cache.Get(token); ok && entry.Expiration().After(time.Now()) {
+		email := entry.(*authnEntry).Email
+		return &user.DefaultInfo{Name: email, UID: email}, true, nil
+	}
 	tok := struct {
 		AccessToken string `json:"accessToken"`
 	}{
@@ -68,12 +84,10 @@ func (g *gcpAuthn) AuthenticateToken(token string) (user.Info, bool, error) {
 	if err := googleapi.CheckResponse(res); err != nil {
 		return nil, false, errors.New(fmt.Sprintf("GCP Authentication request failed: %v", err))
 	}
-	var resp struct {
-		Email      string    `json:"email"`
-		ExpireTime time.Time `json:"expireTime"`
-	}
+	var resp authnEntry
 	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
 		return nil, false, errors.New(fmt.Sprintf("Error decoding authentication response: %v", err))
 	}
+	g.cache.Add(token, &resp)
 	return &user.DefaultInfo{Name: resp.Email, UID: resp.Email}, true, nil
 }
