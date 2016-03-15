@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/golang/glog"
 	"golang.org/x/oauth2"
@@ -33,12 +34,14 @@ import (
 	"k8s.io/kubernetes/pkg/auth/authorizer"
 	clientset "k8s.io/kubernetes/pkg/client/clientset_generated/internalclientset"
 	"k8s.io/kubernetes/pkg/runtime"
+	"k8s.io/kubernetes/pkg/util"
 )
 
 type gcpAuthz struct {
 	kubeClient  clientset.Interface
 	oauthClient *http.Client
 	authzURL    string
+	cache       *util.ExpireCache
 }
 
 func New(kc clientset.Interface, authzURL string) *gcpAuthz {
@@ -47,6 +50,7 @@ func New(kc clientset.Interface, authzURL string) *gcpAuthz {
 		kubeClient:  kc,
 		oauthClient: oc,
 		authzURL:    authzURL,
+		cache:       util.NewExpireCache(1024),
 	}
 }
 
@@ -134,6 +138,16 @@ func (g *gcpAuthz) getResourceUID(nsName, resource, resName string) string {
 	return string(uid)
 }
 
+type authzResponse struct {
+	Success    bool   `json:"success"`
+	Message    string `json:"message"`
+	ExpireTime time.Time
+}
+
+func (a *authzResponse) Expiration() time.Time {
+	return a.ExpireTime
+}
+
 // Authorizer implements authorizer.Authorize
 func (g *gcpAuthz) Authorize(a authorizer.Attributes) error {
 	nsName := a.GetNamespace()
@@ -151,6 +165,12 @@ func (g *gcpAuthz) Authorize(a authorizer.Attributes) error {
 		ResourceID:        rUID,
 		IsResourceRequest: a.IsResourceRequest(),
 	}
+	if e, ok := g.cache.Get(gaa); ok && e.Expiration().After(time.Now()) {
+		if !e.(*authzResponse).Success {
+			return errors.New(e.(*authzResponse).Message)
+		}
+		return nil
+	}
 	body, err := json.Marshal(gaa)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error marshaling GCP authorization attributes: %#v, %v", gaa, err))
@@ -167,13 +187,16 @@ func (g *gcpAuthz) Authorize(a authorizer.Attributes) error {
 	if err := googleapi.CheckResponse(res); err != nil {
 		return errors.New(fmt.Sprintf("GCP Authorization request failed: %v", err))
 	}
-	var resp struct {
-		Success bool   `json:"success"`
-		Message string `json:"message"`
-	}
+	var resp authzResponse
 	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
 		return errors.New(fmt.Sprintf("Error decoding authorization response: %v", err))
 	}
+	if resp.Success {
+		resp.ExpireTime = time.Now().Add(10 * time.Minute)
+	} else {
+		resp.ExpireTime = time.Now().Add(1 * time.Minute)
+	}
+	g.cache.Add(gaa, &resp)
 	if resp.Success {
 		return nil
 	}
