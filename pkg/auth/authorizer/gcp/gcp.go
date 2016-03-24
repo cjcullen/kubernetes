@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -118,6 +119,18 @@ func (g *gcpAuthz) getResourceUID(nsName, resource, resName string) string {
 		res, err = g.kubeClient.Core().PersistentVolumeClaims(nsName).Get(resName)
 	case "configmaps":
 		res, err = g.kubeClient.Core().ConfigMaps(nsName).Get(resName)
+	case "horizontalpodautoscalers":
+		res, err = g.kubeClient.Extensions().HorizontalPodAutoscalers(nsName).Get(resName)
+	case "daemonsets":
+		res, err = g.kubeClient.Extensions().DaemonSets(nsName).Get(resName)
+	case "deployments":
+		res, err = g.kubeClient.Extensions().Deployments(nsName).Get(resName)
+	case "jobs":
+		res, err = g.kubeClient.Extensions().Jobs(nsName).Get(resName)
+	case "ingresses":
+		res, err = g.kubeClient.Extensions().Ingresses(nsName).Get(resName)
+	case "replicasets":
+		res, err = g.kubeClient.Extensions().ReplicaSets(nsName).Get(resName)
 	default:
 		glog.Infof("Don't know how to look up %q", resource)
 		return ""
@@ -154,14 +167,17 @@ func (g *gcpAuthz) Authorize(a authorizer.Attributes) error {
 	nsUID := g.getNamespaceUID(nsName)
 	rName := a.GetResourceName()
 	rType := a.GetResource()
+	if strings.Contains(rType, "/") {
+		rType = strings.Split(rType, "/")[0]
+	}
 	rUID := g.getResourceUID(nsName, rType, rName)
 	gaa := gcpAuthAttributes{
 		User:              a.GetUserName(),
 		Verb:              a.GetVerb(),
-		Namespace:         a.GetNamespace(),
+		Namespace:         nsName,
 		NamespaceID:       nsUID,
-		Resource:          a.GetResource(),
-		ResourceName:      a.GetResourceName(),
+		Resource:          rType,
+		ResourceName:      rName,
 		ResourceID:        rUID,
 		IsResourceRequest: a.IsResourceRequest(),
 	}
