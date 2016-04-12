@@ -249,7 +249,7 @@ var _ = KubeDescribe("Kubectl client", func() {
 
 			// Build the static kubectl
 			By("Finding a static kubectl for upload")
-			testStaticKubectlPath, err := findBinary("kubectl", "linux/386")
+			testStaticKubectlPath, err := findBinary("kubectl", "linux/amd64")
 			if err != nil {
 				Logf("No kubectl found: %v.\nAttempting a local build...", err)
 				// Fall back to trying to build a local static kubectl
@@ -259,6 +259,7 @@ var _ = KubeDescribe("Kubectl client", func() {
 				}
 				By("Building a static kubectl for upload")
 				staticKubectlBuild := exec.Command("make", "-C", kubectlContainerPath)
+
 				if out, err := staticKubectlBuild.Output(); err != nil {
 					Failf("Unable to create static kubectl. Error=%s, Output=%q", err, out)
 				}
