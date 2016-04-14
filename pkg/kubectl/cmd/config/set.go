@@ -24,6 +24,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"k8s.io/kubernetes/pkg/client/unversioned/clientcmd"
 )
 
 const (
@@ -32,7 +34,7 @@ const (
 )
 
 type setOptions struct {
-	configAccess  ConfigAccess
+	configAccess  clientcmd.ConfigAccess
 	propertyName  string
 	propertyValue string
 }
@@ -41,7 +43,7 @@ const set_long = `Sets an individual value in a kubeconfig file
 PROPERTY_NAME is a dot delimited name where each token represents either a attribute name or a map key.  Map keys may not contain dots.
 PROPERTY_VALUE is the new value you wish to set.`
 
-func NewCmdConfigSet(out io.Writer, configAccess ConfigAccess) *cobra.Command {
+func NewCmdConfigSet(out io.Writer, configAccess clientcmd.ConfigAccess) *cobra.Command {
 	options := &setOptions{configAccess: configAccess}
 
 	cmd := &cobra.Command{
@@ -84,7 +86,7 @@ func (o setOptions) run() error {
 		return err
 	}
 
-	if err := ModifyConfig(o.configAccess, *config, false); err != nil {
+	if err := clientcmd.ModifyConfig(o.configAccess, *config, false); err != nil {
 		return err
 	}
 
