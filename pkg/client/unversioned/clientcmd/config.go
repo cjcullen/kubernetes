@@ -25,6 +25,7 @@ import (
 
 	"github.com/golang/glog"
 
+	"k8s.io/kubernetes/pkg/client/restclient"
 	clientcmdapi "k8s.io/kubernetes/pkg/client/unversioned/clientcmd/api"
 )
 
@@ -291,6 +292,32 @@ func ModifyConfig(configAccess ConfigAccess, newConfig clientcmdapi.Config, rela
 		}
 	}
 
+	return nil
+}
+
+func PersistAuthConfigForUser(loadingRules *ClientConfigLoadingRules) func(string) restclient.AuthProviderConfigPersister {
+	configAccess := NewDefaultPathOptions()
+	return func(user string) restclient.AuthProviderConfigPersister {
+		return &persister{configAccess, loadingRules, user}
+	}
+}
+
+type persister struct {
+	configAccess ConfigAccess
+	loadingRules *ClientConfigLoadingRules
+	user         string
+}
+
+func (p *persister) Persist(config map[string]string) error {
+	newConfig, err := p.loadingRules.Load()
+	if err != nil {
+		return err
+	}
+	authInfo, ok := newConfig.AuthInfos[p.user]
+	if ok && authInfo.AuthProvider != nil {
+		authInfo.AuthProvider.Config = config
+		ModifyConfig(p.configAccess, *newConfig, false)
+	}
 	return nil
 }
 
