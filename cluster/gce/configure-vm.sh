@@ -809,6 +809,29 @@ EOF
 EOF
   fi
 
+  if [[ -n ${GCP_AUTHZ_URL:-} ]]; then
+  cat <<EOF >>/etc/salt/minion.d/grains.conf
+  webhook_authorization_config: /etc/gcp_authz.config
+EOF
+  cat <<EOF >/etc/gcp_authz.config
+clusters:
+  - name: gcp-authorization-server
+    cluster:
+      server: ${GCP_AUTHZ_URL}
+users:
+  - name: kube-apiserver
+    user:
+      auth-provider:
+        name: gcp
+current-context: webhook
+contexts:
+- context:
+    cluster: gcp-authorization-server
+    user: kube-apiserver
+  name: webhook
+EOF
+  fi
+
   # If the kubelet on the master is enabled, give it the same CIDR range
   # as a generic node.
   if [[ ! -z "${KUBELET_APISERVER:-}" ]] && [[ ! -z "${KUBELET_CERT:-}" ]] && [[ ! -z "${KUBELET_KEY:-}" ]]; then
