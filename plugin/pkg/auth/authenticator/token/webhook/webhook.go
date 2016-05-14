@@ -18,10 +18,13 @@ limitations under the License.
 package webhook
 
 import (
+	"time"
+
 	"k8s.io/kubernetes/pkg/api/unversioned"
 	"k8s.io/kubernetes/pkg/apis/authentication.k8s.io/v1beta1"
 	"k8s.io/kubernetes/pkg/auth/authenticator"
 	"k8s.io/kubernetes/pkg/auth/user"
+	"k8s.io/kubernetes/pkg/util/cache"
 	"k8s.io/kubernetes/plugin/pkg/webhook"
 
 	_ "k8s.io/kubernetes/pkg/apis/authentication.k8s.io/install"
@@ -36,6 +39,7 @@ var _ authenticator.Token = (*WebhookTokenAuthenticator)(nil)
 
 type WebhookTokenAuthenticator struct {
 	*webhook.GenericWebhook
+	responseCache *cache.LRUExpireCache
 }
 
 // New creates a new WebhookTokenAuthenticator from the provided kubeconfig file.
@@ -44,15 +48,22 @@ func New(kubeConfigFile string) (*WebhookTokenAuthenticator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &WebhookTokenAuthenticator{gw}, nil
+	return &WebhookTokenAuthenticator{gw, cache.NewLRUExpireCache(1024 * 1024)}, nil
 }
 
 // AuthenticateToken
 func (w *WebhookTokenAuthenticator) AuthenticateToken(token string) (user.Info, bool, error) {
+	spec := v1beta1.TokenReviewSpec{Token: token}
+	if entry, ok := w.responseCache.Get(spec); ok {
+		status := entry.(v1beta1.TokenReviewStatus)
+		return &user.DefaultInfo{
+			Name:   status.User.Username,
+			UID:    status.User.UID,
+			Groups: status.User.Groups,
+		}, true, nil
+	}
 	r := &v1beta1.TokenReview{
-		Spec: v1beta1.TokenReviewSpec{
-			Token: token,
-		},
+		Spec: spec,
 	}
 	result := w.RestClient.Post().Body(r).Do()
 	if err := result.Error(); err != nil {
@@ -61,6 +72,15 @@ func (w *WebhookTokenAuthenticator) AuthenticateToken(token string) (user.Info, 
 	if err := result.Into(r); err != nil {
 		return nil, false, err
 	}
+	go func() {
+		var ttl time.Duration
+		if r.Status.Authenticated {
+			ttl = 1 * time.Minute
+		} else {
+			ttl = 10 * time.Second
+		}
+		w.responseCache.Add(spec, r.Status, ttl)
+	}()
 	if !r.Status.Authenticated {
 		return nil, false, nil
 	}
