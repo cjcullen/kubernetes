@@ -48,7 +48,7 @@ func New(kubeConfigFile string) (*WebhookTokenAuthenticator, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &WebhookTokenAuthenticator{gw, cache.NewLRUExpireCache(1024 * 1024)}, nil
+	return &WebhookTokenAuthenticator{gw, cache.NewLRUExpireCache(1024)}, nil
 }
 
 // AuthenticateToken

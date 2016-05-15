@@ -18,11 +18,14 @@ limitations under the License.
 package webhook
 
 import (
+	"encoding/json"
 	"errors"
+	"time"
 
 	"k8s.io/kubernetes/pkg/api/unversioned"
 	"k8s.io/kubernetes/pkg/apis/authorization/v1beta1"
 	"k8s.io/kubernetes/pkg/auth/authorizer"
+	"k8s.io/kubernetes/pkg/util/cache"
 	"k8s.io/kubernetes/plugin/pkg/webhook"
 
 	_ "k8s.io/kubernetes/pkg/apis/authorization/install"
@@ -37,6 +40,7 @@ var _ authorizer.Authorizer = (*WebhookAuthorizer)(nil)
 
 type WebhookAuthorizer struct {
 	*webhook.GenericWebhook
+	responseCache *cache.LRUExpireCache
 }
 
 // New creates a new WebhookAuthorizer from the provided kubeconfig file.
@@ -64,7 +68,7 @@ func New(kubeConfigFile string) (*WebhookAuthorizer, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &WebhookAuthorizer{gw}, nil
+	return &WebhookAuthorizer{gw, cache.NewLRUExpireCache(1024)}, nil
 }
 
 // Authorize makes a REST request to the remote service describing the attempted action as a JSON
@@ -134,13 +138,29 @@ func (w *WebhookAuthorizer) Authorize(attr authorizer.Attributes) (err error) {
 			Verb: attr.GetVerb(),
 		}
 	}
-	result := w.RestClient.Post().Body(r).Do()
-	if err := result.Error(); err != nil {
+	key, err := json.Marshal(r.Spec)
+	if err != nil {
 		return err
 	}
-
-	if err := result.Into(r); err != nil {
-		return err
+	if entry, ok := w.responseCache.Get(string(key)); ok {
+		r.Status = entry.(v1beta1.SubjectAccessReviewStatus)
+	} else {
+		result := w.RestClient.Post().Body(r).Do()
+		if err := result.Error(); err != nil {
+			return err
+		}
+		if err := result.Into(r); err != nil {
+			return err
+		}
+		go func() {
+			var ttl time.Duration
+			if r.Status.Allowed {
+				ttl = 1 * time.Minute
+			} else {
+				ttl = 10 * time.Second
+			}
+			w.responseCache.Add(string(key), r.Status, ttl)
+		}()
 	}
 	if r.Status.Allowed {
 		return nil
