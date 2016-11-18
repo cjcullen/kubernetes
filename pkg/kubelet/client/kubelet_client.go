@@ -33,8 +33,9 @@ import (
 
 type KubeletClientConfig struct {
 	// Default port - used if no information about Kubelet port can be found in Node.NodeStatus.DaemonEndpoints.
-	Port        uint
-	EnableHttps bool
+	Port         uint
+	ReadOnlyPort uint
+	EnableHttps  bool
 
 	// PreferredAddressTypes - used to select an address from Node.NodeStatus.Addresses
 	PreferredAddressTypes []string
