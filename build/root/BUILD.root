@@ -11,6 +11,8 @@
 # hack/update-generated-protobuf.sh and checked into the repo.
 # gazelle:proto disable_global
 
+fail("Bazel support for BoringCrypto + Kubernetes not yet implemented")
+
 package(default_visibility = ["//visibility:public"])
 
 load("@io_kubernetes_build//defs:build.bzl", "gcs_upload")

@@ -19,6 +19,16 @@ set -o nounset
 set -o pipefail
 set -o xtrace
 
+# HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
+# kubekins-test is currently based on golang, but we need to use
+# goboring/golang.
+# Until we fork kubekins-test, explicitly replace the go installation with
+# goboring here.
+rm -rf /usr/local/go
+curl -sSLf https://storage.googleapis.com/go-boringcrypto/go1.10.3b4.linux-amd64.tar.gz | \
+  tar -xzf- -C /usr/local
+# / HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK HACK
+
 retry() {
   for i in {1..5}; do
     "$@" && return 0 || sleep $i

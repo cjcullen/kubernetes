@@ -94,10 +94,10 @@ kube::build::get_docker_wrapped_binaries() {
   case $1 in
     "amd64")
         local targets=(
-          cloud-controller-manager,busybox
-          kube-apiserver,busybox
-          kube-controller-manager,busybox
-          kube-scheduler,busybox
+          cloud-controller-manager,busybox:glibc
+          kube-apiserver,busybox:glibc
+          kube-controller-manager,busybox:glibc
+          kube-scheduler,busybox:glibc
           kube-proxy,k8s.gcr.io/debian-iptables-amd64:${debian_iptables_version}
         );;
     "arm")
@@ -764,6 +764,7 @@ function kube::build::copy_output() {
     --filter='+ /Godeps/' \
     --filter='+ /staging/***/Godeps/**' \
     --filter='+ /_output/dockerized/bin/**' \
+    --filter='+ /_output/dockerized/src/**' \
     --filter='+ zz_generated.*' \
     --filter='+ generated.proto' \
     --filter='+ *.pb.go' \
