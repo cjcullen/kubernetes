@@ -11,11 +11,10 @@
 # hack/update-generated-protobuf.sh and checked into the repo.
 # gazelle:proto disable_global
 
-fail("Bazel support for BoringCrypto + Kubernetes not yet implemented")
-
 package(default_visibility = ["//visibility:public"])
 
 load("@io_kubernetes_build//defs:build.bzl", "gcs_upload")
+load("//build:licenses.bzl", "gen_licenses")
 
 filegroup(
     name = "_binary-artifacts-and-hashes",
@@ -88,3 +87,5 @@ genrule(
     cmd = "grep ^STABLE_BUILD_SCM_REVISION bazel-out/stable-status.txt | awk '{print $$2}' >$@",
     stamp = 1,
 )
+
+gen_licenses()

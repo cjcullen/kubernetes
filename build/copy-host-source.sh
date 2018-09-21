@@ -41,6 +41,7 @@ format_license() {
 
 LICENSES_FILE="${KUBE_OUTPUT}/src/HOST_LICENSES"
 rm -f "${LICENSES_FILE}"
+# If you change this list, also be sure to change build/licenses.bzl.
 (
   format_license "GNU C Library" /usr/src/glibc/debian/copyright
   format_license "Go standard library" /usr/local/go/LICENSE
