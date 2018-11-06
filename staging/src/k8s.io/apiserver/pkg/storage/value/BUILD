@@ -8,7 +8,9 @@ load(
 
 go_test(
     name = "go_default_test",
-    srcs = ["transformer_test.go"],
+    srcs = [
+        "transformer_test.go",
+    ],
     embed = [":go_default_library"],
 )
 
@@ -20,7 +22,11 @@ go_library(
     ],
     importmap = "k8s.io/kubernetes/vendor/k8s.io/apiserver/pkg/storage/value",
     importpath = "k8s.io/apiserver/pkg/storage/value",
-    deps = ["//vendor/github.com/prometheus/client_golang/prometheus:go_default_library"],
+    deps = [
+        "//vendor/github.com/prometheus/client_golang/prometheus:go_default_library",
+        "//vendor/google.golang.org/grpc/codes:go_default_library",
+        "//vendor/google.golang.org/grpc/status:go_default_library",
+    ],
 )
 
 filegroup(
