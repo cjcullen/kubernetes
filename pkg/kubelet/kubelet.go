@@ -713,7 +713,8 @@ func NewMainKubelet(kubeCfg *kubeletconfiginternal.KubeletConfiguration,
 			klet.runtimeCache,
 			runtimeService,
 			imageService,
-			stats.NewLogMetricsService())
+			stats.NewLogMetricsService(),
+			kubecontainer.RealOS{})
 	}
 
 	klet.pleg = pleg.NewGenericPLEG(klet.containerRuntime, plegChannelCapacity, plegRelistPeriod, klet.podCache, clock.RealClock{})
