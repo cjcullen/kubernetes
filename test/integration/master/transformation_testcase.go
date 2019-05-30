@@ -29,6 +29,7 @@ import (
 
 	"github.com/coreos/etcd/clientv3"
 	"github.com/ghodss/yaml"
+	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 
 	corev1 "k8s.io/api/core/v1"
@@ -81,16 +82,13 @@ func newTransformTest(l kubeapiservertesting.Logger, transformerConfigYAML strin
 	if e.kubeAPIServer, err = kubeapiservertesting.StartTestServer(l, nil, e.getEncryptionOptions(), e.storageConfig); err != nil {
 		return nil, fmt.Errorf("failed to start KubeAPI server: %v", err)
 	}
+	glog.Infof("Started kube-apiserver %v", e.kubeAPIServer.ClientConfig.Host)
 
 	if e.restClient, err = kubernetes.NewForConfig(e.kubeAPIServer.ClientConfig); err != nil {
 		return nil, fmt.Errorf("error while creating rest client: %v", err)
 	}
 
 	if e.ns, err = e.createNamespace(testNamespace); err != nil {
-		return nil, err
-	}
-
-	if e.secret, err = e.createSecret(testSecret, e.ns.Name); err != nil {
 		return nil, err
 	}
 
@@ -118,7 +116,7 @@ func (e *transformTest) run(unSealSecretFunc unSealSecret, expectedEnvelopePrefi
 
 	// etcd path of the key is used as the authenticated context - need to pass it to decrypt
 	ctx := value.DefaultContext([]byte(e.getETCDPath()))
-	// Envelope header precedes the payload
+	// Envelope header precedes the cipherTextPayload
 	sealedData := response.Kvs[0].Value[len(expectedEnvelopePrefix):]
 	transformerConfig, err := e.getEncryptionConfig()
 	if err != nil {
