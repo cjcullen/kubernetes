@@ -2679,9 +2679,6 @@ EOF
     if [[ "${ENABLE_CLUSTER_MONITORING:-}" == "stackdriver" || "${MONITORING_FLAG_SET}" == "true" ]]; then
       suffix="-sd"
     fi
-    if [[ "${ENABLE_CLOUDRUN:-}" == "true" ]]; then
-      suffix="${suffix}-customize"
-    fi
     local prefix="no"
     if [[ "${ISTIO_AUTH_TYPE:-}" == "MUTUAL_TLS" ]]; then
       prefix=""
