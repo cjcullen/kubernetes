@@ -1311,7 +1311,7 @@ function start-node-problem-detector {
     local -r km_config="${KUBE_HOME}/node-problem-detector/config/kernel-monitor.json"
     # TODO(random-liu): Handle this for alternative container runtime.
     local -r dm_config="${KUBE_HOME}/node-problem-detector/config/docker-monitor.json"
-    local -r custom_km_config="${KUBE_HOME}/node-problem-detector/config/kernel-monitor-counter.json,${KUBE_HOME}/node-problem-detector/config/systemd-monitor-counter.json,${KUBE_HOME}/node-problem-detector/config/docker-monitor-counter.json"
+    local -r custom_km_config="${KUBE_HOME}/node-problem-detector/config/kernel-monitor-counter.json,${KUBE_HOME}/node-problem-detector/config/systemd-monitor-counter.json"
     flags="${NPD_TEST_LOG_LEVEL:-"--v=2"} ${NPD_TEST_ARGS:-}"
     flags+=" --logtostderr"
     flags+=" --system-log-monitors=${km_config},${dm_config}"
