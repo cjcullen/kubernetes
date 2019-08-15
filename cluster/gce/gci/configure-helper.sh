@@ -2871,6 +2871,11 @@ function main() {
   KUBE_SCHEDULER_TOKEN="$(secure_random 32)"
   KUBE_CLUSTER_AUTOSCALER_TOKEN="$(secure_random 32)"
 
+  # Source the GKE specific scripts.
+  if [[ -e "${KUBE_HOME}/bin/gke-internal-configure-helper.sh" ]]; then
+    echo "Running GKE internal configuration script"
+    . "${KUBE_HOME}/bin/gke-internal-configure-helper.sh"
+  fi
   setup-os-params
   config-ip-firewall
   create-dirs
