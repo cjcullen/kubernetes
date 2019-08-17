@@ -17,7 +17,11 @@ include  ../../hack/make-rules/Makefile.manifest
 REGISTRY ?= gcr.io/kubernetes-e2e-test-images
 GOARM=7
 QEMUVERSION=v2.9.1
+<<<<<<< HEAD
 GOLANG_VERSION=1.10.8
+=======
+GOLANG_VERSION=1.11.13
+>>>>>>> 80d17309019... bump go to 1.11.13
 export
 
 ifndef WHAT
