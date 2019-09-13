@@ -86,11 +86,11 @@ func NewCmdCp(f cmdutil.Factory, ioStreams genericclioptions.IOStreams) *cobra.C
 	o := NewCopyOptions(ioStreams)
 
 	cmd := &cobra.Command{
-		Use: "cp <file-spec-src> <file-spec-dest>",
+		Use:                   "cp <file-spec-src> <file-spec-dest>",
 		DisableFlagsInUseLine: true,
-		Short:   i18n.T("Copy files and directories to and from containers."),
-		Long:    "Copy files and directories to and from containers.",
-		Example: cpExample,
+		Short:                 i18n.T("Copy files and directories to and from containers."),
+		Long:                  "Copy files and directories to and from containers.",
+		Example:               cpExample,
 		Run: func(cmd *cobra.Command, args []string) {
 			cmdutil.CheckErr(o.Complete(f, cmd))
 			cmdutil.CheckErr(o.Run(args))
@@ -404,6 +404,7 @@ func clean(fileName string) string {
 func (o *CopyOptions) untarAll(reader io.Reader, destDir, prefix string) error {
 	// TODO: use compression here?
 	tarReader := tar.NewReader(reader)
+	symlinks := map[string]string{} // map of link -> destination
 	for {
 		header, err := tarReader.Next()
 		if err != nil {
@@ -453,17 +454,10 @@ func (o *CopyOptions) untarAll(reader io.Reader, destDir, prefix string) error {
 		}
 
 		if mode&os.ModeSymlink != 0 {
-			linkname := header.Linkname
-			// We need to ensure that the link destination is always within boundries
-			// of the destination directory. This prevents any kind of path traversal
-			// from within tar archive.
-			if !isDestRelative(destDir, linkJoin(destFileName, linkname)) {
-				fmt.Fprintf(o.IOStreams.ErrOut, "warning: link %q is pointing to %q which is outside target destination, skipping\n", destFileName, header.Linkname)
-				continue
+			if _, exists := symlinks[destFileName]; exists {
+				return fmt.Errorf("duplicate symlink: %q", destFileName)
 			}
-			if err := os.Symlink(linkname, destFileName); err != nil {
-				return err
-			}
+			symlinks[destFileName] = header.Linkname
 		} else {
 			outFile, err := os.Create(destFileName)
 			if err != nil {
@@ -476,6 +470,17 @@ func (o *CopyOptions) untarAll(reader io.Reader, destDir, prefix string) error {
 			if err := outFile.Close(); err != nil {
 				return err
 			}
+		}
+	}
+
+	// Create symlinks after all regular files have been written.
+	// Ordering this way prevents writing data outside the destination directory through path
+	// traversals.
+	// Symlink chaining is prevented due to the directory tree being established (MkdirAll) before
+	// creating any symlinks.
+	for newname, oldname := range symlinks {
+		if err := os.Symlink(oldname, newname); err != nil {
+			return err
 		}
 	}
 
