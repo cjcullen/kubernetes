@@ -44,6 +44,7 @@ type Tunneler interface {
 	Dial(ctx context.Context, net, addr string) (net.Conn, error)
 	SecondsSinceSync() int64
 	SecondsSinceSSHKeySync() int64
+	PreferredAddressTypes() []string
 }
 
 // TunnelSyncHealthChecker returns a health func that indicates if a tunneler is healthy.
@@ -81,6 +82,8 @@ type SSHTunneler struct {
 	InstallSSHKey  InstallSSHKey
 	HealthCheckURL *url.URL
 
+	preferredAddressTypes []string
+
 	tunnels *ssh.SSHTunnelList
 	clock   clock.Clock
 
@@ -88,13 +91,15 @@ type SSHTunneler struct {
 	stopChan     chan struct{}
 }
 
-func New(sshUser, sshKeyfile string, healthCheckURL *url.URL, installSSHKey InstallSSHKey) Tunneler {
+func New(sshUser, sshKeyfile string, healthCheckURL *url.URL, installSSHKey InstallSSHKey, preferredAddressTypes []string) Tunneler {
 	return &SSHTunneler{
 		SSHUser:        sshUser,
 		SSHKeyfile:     sshKeyfile,
 		InstallSSHKey:  installSSHKey,
 		HealthCheckURL: healthCheckURL,
 		clock:          clock.RealClock{},
+
+		preferredAddressTypes: preferredAddressTypes,
 	}
 }
 
@@ -160,6 +165,10 @@ func (c *SSHTunneler) SecondsSinceSSHKeySync() int64 {
 	now := c.clock.Now().Unix()
 	then := atomic.LoadInt64(&c.lastSSHKeySync)
 	return now - then
+}
+
+func (c *SSHTunneler) PreferredAddressTypes() []string {
+	return c.preferredAddressTypes
 }
 
 func (c *SSHTunneler) installSSHKeySyncLoop(user, publicKeyfile string) {

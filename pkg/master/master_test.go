@@ -251,7 +251,7 @@ func TestGetNodeAddresses(t *testing.T) {
 	assert := assert.New(t)
 
 	fakeNodeClient := fake.NewSimpleClientset(makeNodeList([]string{"node1", "node2"}, apiv1.NodeResources{})).CoreV1().Nodes()
-	addressProvider := nodeAddressProvider{fakeNodeClient}
+	addressProvider := nodeAddressProvider{nodeClient: fakeNodeClient, preferredAddressTypes: []apiv1.NodeAddressType{apiv1.NodeExternalIP}}
 
 	// Fail case (no addresses associated with nodes)
 	nodes, _ := fakeNodeClient.List(metav1.ListOptions{})
@@ -275,7 +275,7 @@ func TestGetNodeAddressesWithOnlySomeExternalIP(t *testing.T) {
 	assert := assert.New(t)
 
 	fakeNodeClient := fake.NewSimpleClientset(makeNodeList([]string{"node1", "node2", "node3"}, apiv1.NodeResources{})).CoreV1().Nodes()
-	addressProvider := nodeAddressProvider{fakeNodeClient}
+	addressProvider := nodeAddressProvider{nodeClient: fakeNodeClient, preferredAddressTypes: []apiv1.NodeAddressType{apiv1.NodeExternalIP}}
 
 	// Pass case with 1 External type IP (index == 1) and nodes (indexes 0 & 2) have no External IP.
 	nodes, _ := fakeNodeClient.List(metav1.ListOptions{})

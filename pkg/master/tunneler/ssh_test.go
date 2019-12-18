@@ -144,6 +144,7 @@ func (t *FakeTunneler) Stop()                                                   
 func (t *FakeTunneler) Dial(ctx context.Context, net, addr string) (net.Conn, error) { return nil, nil }
 func (t *FakeTunneler) SecondsSinceSync() int64                                      { return t.SecondsSinceSyncValue }
 func (t *FakeTunneler) SecondsSinceSSHKeySync() int64                                { return t.SecondsSinceSSHKeySyncValue }
+func (t *FakeTunneler) PreferredAddressTypes() []string                              { return []string{"ExternalIP"} }
 
 // TestIsTunnelSyncHealthy verifies that the 600 second lag test
 // is honored.

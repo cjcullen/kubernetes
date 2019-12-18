@@ -302,6 +302,9 @@ func TestAddFlags(t *testing.T) {
 		EnableAggregatorRouting: true,
 		ProxyClientKeyFile:      "/var/run/kubernetes/proxy.key",
 		ProxyClientCertFile:     "/var/run/kubernetes/proxy.crt",
+		SSHPreferredAddressTypes: []string{
+			string(kapi.NodeExternalIP),
+		},
 	}
 
 	if !reflect.DeepEqual(expected, s) {

@@ -63,9 +63,10 @@ type ServerRunOptions struct {
 	PrimaryServiceClusterIPRange   net.IPNet
 	SecondaryServiceClusterIPRange net.IPNet
 
-	ServiceNodePortRange utilnet.PortRange
-	SSHKeyfile           string
-	SSHUser              string
+	ServiceNodePortRange     utilnet.PortRange
+	SSHKeyfile               string
+	SSHUser                  string
+	SSHPreferredAddressTypes []string
 
 	ProxyClientCertFile string
 	ProxyClientKeyFile  string
@@ -119,6 +120,9 @@ func NewServerRunOptions() *ServerRunOptions {
 			HTTPTimeout: time.Duration(5) * time.Second,
 		},
 		ServiceNodePortRange: kubeoptions.DefaultServiceNodePortRange,
+		SSHPreferredAddressTypes: []string{
+			string(api.NodeExternalIP),
+		},
 	}
 	s.ServiceClusterIPRanges = kubeoptions.DefaultServiceIPCIDR.String()
 
@@ -167,6 +171,11 @@ func (s *ServerRunOptions) Flags() (fss cliflag.NamedFlagSets) {
 	fs.StringVar(&s.SSHKeyfile, "ssh-keyfile", s.SSHKeyfile,
 		"If non-empty, use secure SSH proxy to the nodes, using this user keyfile")
 	fs.MarkDeprecated("ssh-keyfile", "This flag will be removed in a future version.")
+
+	// Deprecated
+	fs.StringSliceVar(&s.SSHPreferredAddressTypes, "ssh-preferred-address-types", s.SSHPreferredAddressTypes,
+		"List of the preferred NodeAddressTypes to use for SSH proxy connections.")
+	fs.MarkDeprecated("ssh-preferred-address-types", "This flag will be removed in a future version.")
 
 	fs.Int64Var(&s.MaxConnectionBytesPerSec, "max-connection-bytes-per-sec", s.MaxConnectionBytesPerSec, ""+
 		"If non-zero, throttle each user connection to this number of bytes/sec. "+
