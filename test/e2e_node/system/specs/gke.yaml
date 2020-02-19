@@ -49,7 +49,7 @@ kernelSpec:
   - name: IP6_NF_IPTABLES
     description: 'Required by kube-proxy.'
   - name: IP_NF_TARGET_REDIRECT
-    alias:
+    aliases:
     - NETFILTER_XT_TARGET_REDIRECT
     description: 'Enabled REDIRECT: all incoming connections are mapped onto
       the incoming interface''s address, causing the packets to come to the
@@ -168,7 +168,7 @@ kernelSpec:
   - name: SECURITY_APPARMOR
     description: 'Enable for AppArmor support.'
   - name: CC_STACKPROTECTOR_STRONG # Linux kernel <= 4.17
-    alias:
+    aliases:
     - CC_STACKPROTECTOR_REGULAR # Linux kernel <= 4.17
     - CC_STACKPROTECTOR_ALL # Linux kernel <= 4.17
     - STACKPROTECTOR_STRONG # Linux kernel >= 4.18
