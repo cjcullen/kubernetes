@@ -372,7 +372,8 @@ function setup-gke-addon-registry {
 
 # Configure node-problem-detector flags.
 #
-# This function expects no arguments.
+# This function expects no arguments. It currently configures NPD to operate as
+# a stand-alone service on a COS/GCI image.
 #
 # This function
 #   - is a no-op, if NODE_PROBLEM_DETECTOR_CUSTOM_FLAGS is already set (on
@@ -394,6 +395,9 @@ function gke-configure-node-problem-detector {
   local -r custom_km_config="${KUBE_HOME}/node-problem-detector/config/kernel-monitor-counter.json"
   local -r custom_sm_config="${KUBE_HOME}/node-problem-detector/config/systemd-monitor-counter.json"
 
+  local -r sd_exporter_config="${KUBE_HOME}/node-problem-detector/config/exporter/stackdriver-exporter.json"
+
+  local -r system_stats_monitor="${KUBE_HOME}/node-problem-detector/config/system-stats-monitor.json"
   local custom_plugin_monitors="${custom_km_config},${custom_sm_config}"
 
   gke-configure-npd-custom-plugins
@@ -404,7 +408,9 @@ function gke-configure-node-problem-detector {
   flags="${NPD_TEST_LOG_LEVEL:-"--v=2"} ${NPD_TEST_ARGS:-}"
   flags+=" --logtostderr"
   flags+=" --config.system-log-monitor=${km_config},${dm_config},${sm_config}"
+  flags+=" --config.system-stats-monitor=${system_stats_monitor}"
   flags+=" --config.custom-plugin-monitor=${custom_plugin_monitors}"
+  flags+=" --exporter.stackdriver=${sd_exporter_config}"
   local -r npd_port=${NODE_PROBLEM_DETECTOR_PORT:-20256}
   flags+=" --port=${npd_port}"
   if [[ -n "${EXTRA_NPD_ARGS:-}" ]]; then
