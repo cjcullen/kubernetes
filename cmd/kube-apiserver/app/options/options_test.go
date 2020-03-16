@@ -155,6 +155,7 @@ func TestAddFlags(t *testing.T) {
 				Prefix:                "/registry",
 				CompactionInterval:    storagebackend.DefaultCompactInterval,
 				CountMetricPollPeriod: time.Minute,
+				DBMetricPollInterval:  storagebackend.DefaultDBMetricPollInterval,
 			},
 			DefaultStorageMediaType: "application/vnd.kubernetes.protobuf",
 			DeleteCollectionWorkers: 1,

@@ -49,6 +49,14 @@ var (
 		},
 		[]string{"resource"},
 	)
+	dbTotalSize = compbasemetrics.NewGaugeVec(
+		&compbasemetrics.GaugeOpts{
+			Name:           "etcd_db_total_size_in_bytes",
+			Help:           "Total size of the etcd database file physically allocated in bytes.",
+			StabilityLevel: compbasemetrics.ALPHA,
+		},
+		[]string{"endpoint"},
+	)
 
 	deprecatedEtcdRequestLatenciesSummary = compbasemetrics.NewSummaryVec(
 		&compbasemetrics.SummaryOpts{
@@ -68,6 +76,7 @@ func Register() {
 	registerMetrics.Do(func() {
 		legacyregistry.MustRegister(etcdRequestLatency)
 		legacyregistry.MustRegister(objectCounts)
+		legacyregistry.MustRegister(dbTotalSize)
 
 		// TODO(danielqsj): Remove the following metrics, they are deprecated
 		legacyregistry.MustRegister(deprecatedEtcdRequestLatenciesSummary)
@@ -100,4 +109,9 @@ func sinceInMicroseconds(start time.Time) float64 {
 // sinceInSeconds gets the time since the specified start in seconds.
 func sinceInSeconds(start time.Time) float64 {
 	return time.Since(start).Seconds()
+}
+
+// UpdateEtcdDbSize sets the etcd_db_total_size_in_bytes metric.
+func UpdateEtcdDbSize(ep string, size int64) {
+	dbTotalSize.WithLabelValues(ep).Set(float64(size))
 }
