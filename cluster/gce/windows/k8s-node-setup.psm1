@@ -1103,7 +1103,7 @@ function Start-WorkerServices {
   $kubelet_args = $kubelet_args_str.Split(" ")
   Log-Output "kubelet_args from metadata: ${kubelet_args}"
   $default_kubelet_args = @(`
-      "--pod-infra-container-image=${INFRA_CONTAINER}"
+      "--pod-infra-container-image=${env:INFRA_CONTAINER}"
   )
   $kubelet_args = ${default_kubelet_args} + ${kubelet_args}
   if (-not (Test-NodeUsesAuthPlugin ${kube_env})) {
@@ -1218,14 +1218,14 @@ function Verify-WorkerServices {
 # figure out how to run this in the background while perform the rest of the
 # node startup steps!
 function Pull-InfraContainer {
-  $name, $label = $INFRA_CONTAINER -split ':',2
+  $name, $label = ${env:INFRA_CONTAINER} -split ':',2
   if (-not ("$(& docker image list)" -match "$name.*$label")) {
-    & docker pull $INFRA_CONTAINER
+    & docker pull ${env:INFRA_CONTAINER}
     if (!$?) {
-      throw "Error running 'docker pull $INFRA_CONTAINER'"
+      throw "Error running 'docker pull ${env:INFRA_CONTAINER}'"
     }
   }
-  $inspect = "$(& docker inspect $INFRA_CONTAINER | Out-String)"
+  $inspect = "$(& docker inspect ${env:INFRA_CONTAINER} | Out-String)"
   Log-Output "Infra/pause container:`n$inspect"
 }
 
