@@ -25,6 +25,18 @@ set -o errexit
 set -o nounset
 set -o pipefail
 
+function append-param-if-not-present {
+  # A helper function to add flag to an arguments string
+  # if no such flag is present already
+  local params="$1"
+  local -r flag="$2"
+  local -r value="$3"
+  if [[ ! "${params}" =~ "--${flag}"[=\ ] ]]; then
+    params+=" --${flag}=${value}"
+  fi
+  echo "${params}"
+}
+
 function setup-os-params {
   # Reset core_pattern. On GCI, the default core_pattern pipes the core dumps to
   # /sbin/crash_reporter which is more restrictive in saving crash dumps. So for
@@ -1863,14 +1875,16 @@ function start-kube-apiserver {
   if [[ -n "${NUM_NODES:-}" ]]; then
     # If the cluster is large, increase max-requests-inflight limit in apiserver.
     if [[ "${NUM_NODES}" -gt 3000 ]]; then
-      params+=" --max-requests-inflight=3000 --max-mutating-requests-inflight=1000"
+      params=$(append-param-if-not-present "${params}" "max-requests-inflight" 3000)
+      params=$(append-param-if-not-present "${params}" "max-mutating-requests-inflight" 1000)
     elif [[ "${NUM_NODES}" -gt 500 ]]; then
-      params+=" --max-requests-inflight=1500 --max-mutating-requests-inflight=500"
+      params=$(append-param-if-not-present "${params}" "max-requests-inflight" 1500)
+      params=$(append-param-if-not-present "${params}" "max-mutating-requests-inflight" 500)
     fi
     # Set amount of memory available for apiserver based on number of nodes.
     # TODO: Once we start setting proper requests and limits for apiserver
     # we should reuse the same logic here instead of current heuristic.
-    params+=" --target-ram-mb=$((${NUM_NODES} * 60))"
+    params=$(append-param-if-not-present "${params}" "target-ram-mb" $((NUM_NODES * 60)))
   fi
   if [[ -n "${SERVICE_CLUSTER_IP_RANGE:-}" ]]; then
     params+=" --service-cluster-ip-range=${SERVICE_CLUSTER_IP_RANGE}"
