@@ -53,7 +53,7 @@ type NodeStorage struct {
 type REST struct {
 	*genericregistry.Store
 	connection     client.ConnectionInfoGetter
-	proxyTransport http.RoundTripper
+	proxyTransport *http.Transport
 }
 
 // StatusREST implements the REST endpoint for changing the status of a node.
@@ -84,7 +84,7 @@ func (r *StatusREST) GetResetFields() map[fieldpath.APIVersion]*fieldpath.Set {
 }
 
 // NewStorage returns a NodeStorage object that will work against nodes.
-func NewStorage(optsGetter generic.RESTOptionsGetter, kubeletClientConfig client.KubeletClientConfig, proxyTransport http.RoundTripper) (*NodeStorage, error) {
+func NewStorage(optsGetter generic.RESTOptionsGetter, kubeletClientConfig client.KubeletClientConfig, proxyTransport *http.Transport) (*NodeStorage, error) {
 	store := &genericregistry.Store{
 		NewFunc:                  func() runtime.Object { return &api.Node{} },
 		NewListFunc:              func() runtime.Object { return &api.NodeList{} },

@@ -73,7 +73,7 @@ import (
 type LegacyRESTStorageProvider struct {
 	StorageFactory serverstorage.StorageFactory
 	// Used for custom proxy dialing, and proxy TLS options
-	ProxyTransport      http.RoundTripper
+	ProxyTransport      *http.Transport
 	KubeletClientConfig kubeletclient.KubeletClientConfig
 	EventTTL            time.Duration
 

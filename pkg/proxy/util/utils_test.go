@@ -160,7 +160,7 @@ func TestIsProxyableHostname(t *testing.T) {
 
 	for i := range testCases {
 		resolv := dummyResolver{ips: testCases[i].ips}
-		got := IsProxyableHostname(context.Background(), &resolv, testCases[i].hostname)
+		_, got := IsProxyableHostname(context.Background(), &resolv, testCases[i].hostname)
 		if testCases[i].want != got {
 			t.Errorf("case %d: expected %v, got %v", i, testCases[i].want, got)
 		}

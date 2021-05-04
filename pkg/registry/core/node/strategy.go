@@ -240,7 +240,7 @@ func NameTriggerFunc(obj runtime.Object) string {
 }
 
 // ResourceLocation returns a URL and transport which one can use to send traffic for the specified node.
-func ResourceLocation(getter ResourceGetter, connection client.ConnectionInfoGetter, proxyTransport http.RoundTripper, ctx context.Context, id string) (*url.URL, http.RoundTripper, error) {
+func ResourceLocation(getter ResourceGetter, connection client.ConnectionInfoGetter, proxyTransport *http.Transport, ctx context.Context, id string) (*url.URL, http.RoundTripper, error) {
 	schemeReq, name, portReq, valid := utilnet.SplitSchemeNamePort(id)
 	if !valid {
 		return nil, nil, errors.NewBadRequest(fmt.Sprintf("invalid node request %q", id))
@@ -263,10 +263,15 @@ func ResourceLocation(getter ResourceGetter, connection client.ConnectionInfoGet
 			nil
 	}
 
-	if err := proxyutil.IsProxyableHostname(ctx, &net.Resolver{}, info.Hostname); err != nil {
+	resolvedIP, err := proxyutil.IsProxyableHostname(ctx, &net.Resolver{}, info.Hostname)
+	if err != nil {
 		return nil, nil, errors.NewBadRequest(err.Error())
 	}
 
+	// Put the hostname inside the TLS config so that server validation happens
+	// against the provided name, even though we are dialing the IP directly.
+	proxyTransport.TLSClientConfig.ServerName = info.Hostname
+
 	// Otherwise, return the requested scheme and port, and the proxy transport
-	return &url.URL{Scheme: schemeReq, Host: net.JoinHostPort(info.Hostname, portReq)}, proxyTransport, nil
+	return &url.URL{Scheme: schemeReq, Host: net.JoinHostPort(resolvedIP.String(), portReq)}, proxyTransport, nil
 }

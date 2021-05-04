@@ -108,22 +108,22 @@ type Resolver interface {
 }
 
 // IsProxyableHostname checks if the IP addresses for a given hostname are permitted to be proxied
-func IsProxyableHostname(ctx context.Context, resolv Resolver, hostname string) error {
+func IsProxyableHostname(ctx context.Context, resolv Resolver, hostname string) (net.IP, error) {
 	resp, err := resolv.LookupIPAddr(ctx, hostname)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(resp) == 0 {
-		return ErrNoAddresses
+		return nil, ErrNoAddresses
 	}
 
 	for _, host := range resp {
 		if err := isProxyableIP(host.IP); err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return resp[0].IP, nil
 }
 
 // IsAllowedHost checks if the given IP host address is in a network in the denied list.

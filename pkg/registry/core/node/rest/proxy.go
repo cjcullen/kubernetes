@@ -37,7 +37,7 @@ import (
 type ProxyREST struct {
 	Store          *genericregistry.Store
 	Connection     client.ConnectionInfoGetter
-	ProxyTransport http.RoundTripper
+	ProxyTransport *http.Transport
 }
 
 // Implement Connecter
